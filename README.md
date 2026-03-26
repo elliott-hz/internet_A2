@@ -1,5 +1,47 @@
 # Internet A1 - E-commerce Shopping Cart
 
+## Quick Start
+
+### 1. Checking Prerequisites and Setting Up.
+```bash
+git --version
+node -v
+npm -v
+python3 --version
+```
+
+### 2. Install dependences and Run the project with scripts.
+```bash
+# Make sure [chmod +x] is set for all scripts (cleanup.sh, install.sh, restart.sh)
+chmod +x cleanup.sh install.sh restart.sh
+
+# Cleanup dependencies
+./cleanup.sh
+
+# Install dependencies (backend, frontend, database)
+./install.sh
+
+# Run services(backend and frontend)
+./restart.sh
+
+# NOTE: Using control C to stop services
+```
+### 3. Verify the system and database
+```bash
+# Check if backend is running
+curl http://localhost:8000/api/health
+
+# Check if frontend is running
+curl http://localhost:5173
+# or open http://localhost:5173 in your browser
+# login with (username: kuanlong.li, password: kuanlong.li)
+
+# Test database (cd root_path/database)
+sqlite3 internet_a1.db "SELECT * FROM products;"
+# or see root_path/database/README.md for more details
+```
+
+
 ## Project Summary
 This is a single-page e-commerce shopping cart application that allows users to browse products, add items to cart, modify quantities, and remove items. The application demonstrates full CRUD operations with a MySQL database, built with React frontend and FastAPI backend.
 
@@ -17,7 +59,7 @@ This is a single-page e-commerce shopping cart application that allows users to 
 - **Framework**: FastAPI
 - **Language**: Python 3.9+
 - **Database ORM**: SQLAlchemy
-- **Database**: SQLite (default, python built-in light database, no further libriaries installation required)
+- **Database**: SQLite (default, python built-in light database, no further libriariesinstallation required)
 - **CORS**: FastAPI CORS middleware
 
 **Note**: The application uses SQLite by default for easy setup. MySQL support is available but optional - see [Database README](database/README.md) for details.
@@ -162,11 +204,11 @@ internet_A1/
     └── README.md               # Database setup instructions
 ```
 
-## 3. Troubleshooting Guide
+## 4. Troubleshooting Guide
 
 This guide provides solutions for common issues you may encounter while setting up or running the Internet A1 project.
 
-### 3.1 Installation Issues
+### 4.1 Installation Issues
 
 #### 1. Prerequisites Check Failed
 
@@ -227,7 +269,7 @@ npm install
 ```
 
 
-### 3.2 Backend Issues
+### 4.2 Backend Issues
 
 #### 1. Backend Won't Start
 
@@ -289,13 +331,11 @@ ls -lh database/internet_a1.db
 cd database
 python init_db.py
 
-# Verify products were created
-cd ../backend
-source venv/bin/activate
-python -c "from models.database import SessionLocal; from models.product import Product; db = SessionLocal(); print(f'Products: {db.query(Product).count()}'); db.close()"
+# Verify tables and seed data were created
+see root_path/database/README.md for more details
 ```
 
-### 3.3 Frontend Issues
+### 4.3 Frontend Issues
 
 #### 1. Frontend Won't Start
 
@@ -346,94 +386,7 @@ npm install
 npm run dev
 ```
 
-### 3.4 Database Issues
-
-#### 1. Database File Missing
-
-**Error**: `database/internet_a1.db` not found
-
-**Solution**:
-```bash
-# Navigate to database directory
-cd database
-
-# Re-run initialization
-python init_db.py
-
-# Verify file was created
-ls -lh internet_a1.db
-```
-
-#### 2. Database Schema Issues
-
-**Error**: Table doesn't exist or schema mismatch
-
-**Solution**:
-```bash
-# Delete and recreate database
-cd database
-rm internet_a1.db
-python init_db.py
-
-# Verify tables were created
-cd ../backend
-source venv/bin/activate
-python -c "from models.database import SessionLocal; db = SessionLocal(); result = db.execute('SELECT name FROM sqlite_master WHERE type=\"table\"'); print([row[0] for row in result]); db.close()"
-```
-
-#### 3. Data Not Persisting
-
-**Error**: Cart items or products disappear
-
-**Solution**:
-1. Check if you're using the correct database file location
-2. Verify database write permissions:
-```bash
-cd database
-chmod 644 internet_a1.db
-```
-
-3. Re-seed data if needed:
-```bash
-cd database
-python init_db.py
-```
-
-### 3.5 API Issues
-
-#### 1. API Endpoints Not Working
-
-**Error**: API returns 404 or 500 errors
-
-**Solution 1 - Test health endpoint**:
-```bash
-curl http://localhost:8000/api/health
-```
-
-**Solution 2 - Check backend logs**:
-```bash
-# Stop backend (Ctrl+C)
-# Restart with verbose logging
-cd backend
-source venv/bin/activate
-uvicorn main:app --reload --log-level debug
-```
-
-**Solution 3 - Verify API routes**:
-```bash
-# List all available routes
-curl http://localhost:8000/docs
-```
-
-#### 2. CORS Errors
-
-**Error**: CORS policy blocking requests
-
-**Solution**:
-Check that backend CORS settings in `backend/main.py` include the frontend URL (http://localhost:5173).
-
-
-### 3.6 Port Conflicts
+### 4.4 Port Conflicts
 
 #### 1. Port 8000 Already in Use
 
@@ -464,7 +417,7 @@ kill -9 <PID>
 # Add: server: { port: 5174 }
 ```
 
-### 5.6 General Debugging Tips
+### 4.5 General Debugging Tips
 
 #### 1. Check All Services Status
 
@@ -490,41 +443,5 @@ lsof -i :5173
 kill $(lsof -ti :8000) $(lsof -ti :5173) 2>/dev/null || true
 
 # Clean and restart everything
-./install.sh
-```
-
-#### 3. View Logs
-
-**Backend logs**:
-```bash
-cd backend
-tail -f logs/app.log  # If logging to file
-```
-
-**Frontend logs**:
-Check browser console (F12) for frontend errors.
-
----
-### 3.8 Quick Reference Commands
-
-```bash
-# Check versions
-git --version
-node -v
-npm -v
-python3 --version
-
-# Check ports
-lsof -i :8000
-lsof -i :5173
-
-# Test API
-curl http://localhost:8000/api/health
-curl http://localhost:8000/api/products
-
-# Restart services
-./restart.sh
-
-# Reinstall everything
 ./install.sh
 ```
