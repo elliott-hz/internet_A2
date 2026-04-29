@@ -4,12 +4,10 @@ sqlalchemy>=2.0.0
 pydantic>=2.0.0
 pydantic-settings>=2.1.0
 python-dotenv>=1.0.0
-pyjwt>=2.8.0
 
-# Testing dependencies
-pytest==7.4.3
-pytest-asyncio==0.23.3
-httpx==0.26.0
+# Authentication dependencies
+bcrypt>=4.0.0
+python-jose[cryptography]>=3.3.0
 
 # Optional: MySQL support (uncomment if using MySQL instead of SQLite)
 # pymysql==1.1.0

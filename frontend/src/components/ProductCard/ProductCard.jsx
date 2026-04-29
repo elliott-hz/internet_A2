@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCartOperations } from '../../hooks/useCart';
 import { useAuth } from '../../context/AuthContext';
 import { formatCurrency, formatNumber, truncateText } from '../../utils/formatters';
@@ -8,9 +9,10 @@ import Toast from '../Modal/Toast';
 import * as S from './ProductCard.styles';
 
 const ProductCard = ({ product }) => {
+  const navigate = useNavigate();
   const { addToCart, isInCart, getQuantityInCart, clearStockError } =
     useCartOperations();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState(null);
@@ -25,6 +27,10 @@ const ProductCard = ({ product }) => {
       availableStock: product.stock_quantity - qtyInCart
     };
   }, [product.id, product.stock_quantity, getQuantityInCart]);
+
+  const handleEditProduct = () => {
+    navigate(`/product/${product.id}/edit`);
+  };
 
   const handleAddToCart = async () => {
     // Check if user is authenticated
@@ -104,6 +110,33 @@ const ProductCard = ({ product }) => {
     }
   };
 
+  // Admin users see "Edit" button instead of "Add to Cart"
+  const renderActionButton = () => {
+    if (isAdmin && isAuthenticated) {
+      return (
+        <S.EditButton onClick={handleEditProduct}>
+          Edit Product
+        </S.EditButton>
+      );
+    }
+
+    return (
+      <S.AddToCartButton
+        onClick={handleAddToCart}
+        disabled={isAdding || inCart || availableStock <= 0}
+        $inCart={inCart}
+      >
+        {isAdding
+          ? 'Adding...'
+          : availableStock <= 0
+            ? 'Out of Stock'
+            : inCart
+              ? `In Cart (${cartQuantity})`
+              : 'Add to Cart'}
+      </S.AddToCartButton>
+    );
+  };
+
   return (
     <S.Card>
       <S.ProductImage
@@ -140,19 +173,8 @@ const ProductCard = ({ product }) => {
           </S.InputErrorWrapper>
         </S.QuantityWrapper>
 
-        <S.AddToCartButton
-          onClick={handleAddToCart}
-          disabled={isAdding || inCart || availableStock <= 0}
-          $inCart={inCart}
-        >
-          {isAdding
-            ? 'Adding...'
-            : availableStock <= 0
-              ? 'Out of Stock'
-              : inCart
-                ? `In Cart (${cartQuantity})`
-                : 'Add to Cart'}
-        </S.AddToCartButton>
+        {/* Action button: Edit for admin, Add to Cart for regular users */}
+        {renderActionButton()}
       </S.ProductInfo>
 
       {/* Login Required Error Toast */}

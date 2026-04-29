@@ -2,9 +2,33 @@ import api from './api';
 
 /**
  * Authentication Service
- * Handles user authentication and token management
+ * Handles user registration, authentication and token management
  */
 export const authService = {
+  /**
+   * Register a new user
+   * @param {string} username - Username
+   * @param {string} email - Email address
+   * @param {string} password - Password
+   * @returns {Promise<Object>} - Registration result
+   */
+  async register(username, email, password) {
+    try {
+      const response = await api.post('/auth/register', { 
+        username, 
+        email, 
+        password 
+      });
+      
+      return { success: true, user: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Registration failed' 
+      };
+    }
+  },
+
   /**
    * Login user and store token
    * @param {string} username - Username

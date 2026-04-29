@@ -23,6 +23,7 @@ export const useCartOperations = () => {
 
   const {
     products,
+    displayedProducts,
     loading: productsLoading,
     error: productsError,
     refetch: refetchProducts,
@@ -45,6 +46,7 @@ export const useCartOperations = () => {
 
   return {
     products,
+    displayedProducts,
     cartItems,
     loading: productsLoading || cartLoading,
     error: productsError || cartError,

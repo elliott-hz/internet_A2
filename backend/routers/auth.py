@@ -1,97 +1,97 @@
 """
 Authentication API Routes
-Handles user login, logout, and token management
+Handles user registration, login, logout, and token management
 """
 
 from fastapi import APIRouter, HTTPException, status, Header, Depends
-from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from typing import Optional
-import jwt
-from datetime import datetime, timedelta
 
-from utils.session_store import session_store
+from models.database import get_db
+from models.user import User
+from schemas.user import UserCreate, UserLogin, UserResponse, TokenResponse
+from services.auth_service import AuthService
+from utils.exceptions import ValidationError
 
 router = APIRouter()
 
-# Authentication configuration
-VALID_USERNAME = "kuanlong.li"
-VALID_PASSWORD = "kuanlong.li"  # Default password for demo
-SECRET_KEY = "internet-a1-shopping-cart-secret-key-2024"
-ALGORITHM = "HS256"
 
-
-class LoginRequest(BaseModel):
-    """Login request schema"""
-    username: str
-    password: str
-
-
-class TokenResponse(BaseModel):
-    """Token response schema"""
-    access_token: str
-    token_type: str = "bearer"
-    user: dict
+@router.post("/register", response_model=UserResponse, status_code=201)
+async def register(
+    user_data: UserCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Register a new user account
+    
+    - **username**: Unique username (3-50 characters)
+    - **email**: Valid email address
+    - **password**: Password (minimum 8 characters)
+    
+    Returns the created user information (without password)
+    """
+    try:
+        user = AuthService.register_user(db, user_data)
+        return user
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest):
+async def login(
+    login_data: UserLogin,
+    db: Session = Depends(get_db)
+):
     """
     User login
     
-    - **username**: Username (default: kuanlong.li)
-    - **password**: Password (default: kuanlong.li)
+    - **username**: Username or email
+    - **password**: Password
     
-    Returns JWT token on successful authentication
+    Returns JWT access token and user information on successful authentication
     """
-    # Validate credentials
-    if request.username != VALID_USERNAME or request.password != VALID_PASSWORD:
+    # Authenticate user
+    user = AuthService.authenticate_user(db, login_data.username, login_data.password)
+    
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
+            detail="Invalid username or password"
         )
     
     # Generate JWT token
-    expire = datetime.utcnow() + timedelta(hours=24)
-    to_encode = {
-        "sub": request.username,
-        "exp": expire,
-        "iat": datetime.utcnow()
-    }
-    token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    
-    # Store session in memory
-    session_store.create_session(request.username, token)
+    access_token = AuthService.create_access_token(
+        data={"sub": user.username, "user_id": user.id}
+    )
     
     return TokenResponse(
-        access_token=token,
-        user={"username": request.username}
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse.from_orm(user)
     )
 
 
 @router.post("/logout")
 async def logout(authorization: Optional[str] = Header(None)):
     """
-    User logout
+    User logout (client-side token removal)
     
-    Requires Authorization header with Bearer token
+    Note: JWT is stateless, so logout is handled client-side by removing the token.
+    This endpoint is provided for consistency and future session tracking.
     """
-    if not authorization:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No token provided"
-        )
-    
-    # Extract token from "Bearer <token>" format
-    token = authorization.replace("Bearer ", "")
-    session_store.delete_session(token)
-    
-    return {"message": "Logged out successfully"}
+    return {"message": "Logged out successfully. Please remove your token client-side."}
 
 
-@router.get("/me")
-async def get_current_user(authorization: Optional[str] = Header(None)):
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_endpoint(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
     """
-    Get current authenticated user
+    Get current authenticated user information
     
     Requires Authorization header with Bearer token
     """
@@ -103,36 +103,67 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
     
     # Extract token
     token = authorization.replace("Bearer ", "")
-    session = session_store.get_session(token)
     
-    if not session:
+    try:
+        # Decode token
+        payload = AuthService.decode_token(token)
+        username = payload.get("sub")
+        
+        if not username:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload"
+            )
+        
+        # Get user from database
+        user = AuthService.get_user_by_username(db, username)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
+        
+        return user
+        
+    except ValidationError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token"
         )
-    
-    return {"username": session["username"]}
 
 
 # Dependency injection for protected routes
-async def get_current_user_optional(authorization: Optional[str] = Header(None)) -> Optional[str]:
+async def get_current_user_optional(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
     """
     Get current user if authenticated, returns None otherwise
     
-    Used for optional authentication (e.g., showing stock info only when logged in)
+    Used for optional authentication (e.g., showing different data based on auth status)
     """
     if not authorization:
         return None
     
     try:
         token = authorization.replace("Bearer ", "")
-        session = session_store.get_session(token)
-        return session["username"] if session else None
+        payload = AuthService.decode_token(token)
+        username = payload.get("sub")
+        
+        if not username:
+            return None
+        
+        user = AuthService.get_user_by_username(db, username)
+        return user
     except Exception:
         return None
 
 
-async def get_current_user_required(authorization: Optional[str] = Header(None)) -> str:
+async def get_current_user_required(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+) -> User:
     """
     Get current user, requires authentication
     
@@ -146,18 +177,90 @@ async def get_current_user_required(authorization: Optional[str] = Header(None))
     
     try:
         token = authorization.replace("Bearer ", "")
-        session = session_store.get_session(token)
+        payload = AuthService.decode_token(token)
+        username = payload.get("sub")
         
-        if not session:
+        if not username:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired token"
+                detail="Invalid token payload"
             )
         
-        return session["username"]
-    except HTTPException:
-        raise
-    except Exception:
+        user = AuthService.get_user_by_username(db, username)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
+        
+        return user
+        
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+
+
+async def get_current_admin_user(
+    current_user: User = Depends(get_current_user_required)
+) -> User:
+    """
+    Get current user and verify admin privileges
+    
+    Used for admin-only routes
+    """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    return current_user
+
+
+async def get_current_admin_required(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+) -> User:
+    """
+    Dependency for admin-only routes
+    Extracts token, validates user, and checks admin status
+    """
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    try:
+        token = authorization.replace("Bearer ", "")
+        payload = AuthService.decode_token(token)
+        username = payload.get("sub")
+        
+        if not username:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload"
+            )
+        
+        user = AuthService.get_user_by_username(db, username)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
+        
+        if not user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Admin privileges required"
+            )
+        
+        return user
+        
+    except ValidationError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token"

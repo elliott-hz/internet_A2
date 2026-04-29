@@ -127,6 +127,19 @@ export const UserInfo = styled.span`
   }
 `;
 
+export const AdminBadge = styled.span`
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #ff6b6b;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
 export const LogoutButton = styled.button`
   background: rgba(255, 255, 255, 0.25);
   color: white;

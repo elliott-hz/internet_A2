@@ -43,6 +43,15 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
+  const register = async (username, email, password) => {
+    const result = await authService.register(username, email, password);
+    if (result.success) {
+      // Auto-login after successful registration
+      await login(username, password);
+    }
+    return result;
+  };
+
   const logout = () => {
     authService.logout();
     setUser(null);
@@ -52,8 +61,10 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     isAuthenticated: !!user,
+    isAdmin: user?.is_admin || false,
     login,
     logout,
+    register,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

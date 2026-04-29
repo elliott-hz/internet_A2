@@ -1,306 +1,333 @@
 """
-Database Initialization Script for SQLite
-Supports two initialization methods:
-1. ORM method (default) - Uses SQLAlchemy ORM to create tables and seed data
-2. SQL method - Uses SQL files (init.sql and seed_data.sql) to initialize database
+Database Initialization Script for SQLite (Assignment A2)
+Uses SQL files to initialize database and seed data.
+
+Files used:
+- init.sql: Creates database schema (tables, indexes)
+- seed_data.sql: Inserts sample data (users, products)
+- migration_a2.sql: Migration script (if upgrading from A1)
 
 Usage:
-    python init_db.py              # Default: ORM method
-    python init_db.py --method=orm # Explicitly use ORM method
-    python init_db.py --method=sql # Use SQL files method
+    python init_db.py              # Initialize database using SQL files
+    python init_db.py --force      # Force re-initialization (drops existing database)
 """
 
 import sys
 import os
 import argparse
+import sqlite3
 
-# Add backend directory to path to import models
-backend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'backend')
-sys.path.insert(0, backend_dir)
 
-from sqlalchemy import text
-from models.database import engine, Base, SessionLocal
-from models.product import Product
-from models.cart_item import CartItem
+def get_db_path():
+    """Get the database file path"""
+    return os.path.join(os.path.dirname(__file__), 'internet_a2.db')
+
+
+def check_database_exists():
+    """Check if database file exists"""
+    db_path = get_db_path()
+    return os.path.exists(db_path)
+
+
+def check_schema_version():
+    """
+    Check if database is A1 or A2 schema
+    Returns: 'a1' (needs migration), 'a2' (up to date), or 'empty' (new database)
+    """
+    db_path = get_db_path()
+    
+    if not os.path.exists(db_path):
+        return 'empty'
+    
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Check if users table exists
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+        has_users = cursor.fetchone() is not None
+        
+        # Check if cart_items has user_id column
+        has_user_id = False
+        if has_users:
+            cursor.execute("PRAGMA table_info(cart_items)")
+            columns = [row[1] for row in cursor.fetchall()]
+            has_user_id = 'user_id' in columns
+        
+        conn.close()
+        
+        if has_users and has_user_id:
+            return 'a2'
+        elif has_users or not has_user_id:
+            return 'a1'
+        else:
+            return 'empty'
+            
+    except Exception as e:
+        print(f"Warning: Could not check schema version: {e}")
+        return 'empty'
+
+
+def execute_sql_file(sql_file_path):
+    """
+    Execute a SQL file against the database
+    """
+    db_path = get_db_path()
+    
+    if not os.path.exists(sql_file_path):
+        raise FileNotFoundError(f"SQL file not found: {sql_file_path}")
+    
+    print(f"  Executing: {os.path.basename(sql_file_path)}")
+    
+    with open(sql_file_path, 'r', encoding='utf-8') as f:
+        sql_script = f.read()
+    
+    # Remove SQL comments (lines starting with --)
+    lines = sql_script.split('\n')
+    cleaned_lines = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped and not stripped.startswith('--'):
+            cleaned_lines.append(line)
+    
+    cleaned_script = '\n'.join(cleaned_lines)
+    
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    try:
+        # Split SQL script into individual statements
+        statements = [stmt.strip() for stmt in cleaned_script.split(';') if stmt.strip()]
+        
+        executed_count = 0
+        skipped_count = 0
+        for statement in statements:
+            if statement:
+                try:
+                    cursor.execute(statement)
+                    executed_count += 1
+                except sqlite3.Error as e:
+                    error_msg = str(e).lower()
+                    # Ignore common idempotency errors
+                    if 'already exists' in error_msg or 'no such table' in error_msg:
+                        # These are expected for DROP TABLE IF EXISTS and CREATE TABLE IF NOT EXISTS
+                        skipped_count += 1
+                    else:
+                        print(f"    ⚠️  Warning: {e}")
+        
+        conn.commit()
+        print(f"  ✅ Executed {executed_count} statements successfully")
+        if skipped_count > 0:
+            print(f"  ℹ️  Skipped {skipped_count} statements (expected for idempotent operations)")
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"  ❌ Error executing SQL: {e}")
+        raise
+    finally:
+        conn.close()
+
+
+def run_migration():
+    """Run A2 migration if needed"""
+    print("\n🔄 Checking if migration is needed...")
+    
+    schema_version = check_schema_version()
+    
+    if schema_version == 'a1':
+        print("  Detected A1 schema, running migration...")
+        migration_file = os.path.join(os.path.dirname(__file__), 'migration_a2.sql')
+        
+        if os.path.exists(migration_file):
+            execute_sql_file(migration_file)
+            print("  ✅ Migration completed")
+        else:
+            print("  ⚠️  Migration file not found, skipping")
+    elif schema_version == 'a2':
+        print("  ✅ Database is already A2 schema, skipping migration")
+    else:
+        print("  ℹ️  New database, no migration needed")
 
 
 def create_tables():
-    """Create tables using SQLAlchemy ORM"""
-    print("Creating database tables using ORM...")
-    Base.metadata.create_all(bind=engine)
-    print("✅ Tables created successfully!")
-
-
-def seed_data():
-    """Insert sample product data using ORM"""
-    print("Seeding sample data using ORM...")
-    
-    # Sample products data
-    sample_products = [
-        {
-            "name": "Wireless Bluetooth Headphones",
-            "description": "Premium noise-cancelling over-ear headphones with 30-hour battery life and superior sound quality",
-            "price": 79.99,
-            "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500",
-            "stock_quantity": 50,
-            "is_available": True
-        },
-        {
-            "name": "Smart Watch Pro",
-            "description": "Feature-rich smartwatch with heart rate monitor, GPS, fitness tracking, and 7-day battery life",
-            "price": 199.99,
-            "image_url": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
-            "stock_quantity": 30,
-            "is_available": True
-        },
-        {
-            "name": "Portable Power Bank",
-            "description": "20000mAh high-capacity portable charger with fast charging and dual USB ports",
-            "price": 39.99,
-            "image_url": "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=500",
-            "stock_quantity": 100,
-            "is_available": True
-        },
-        {
-            "name": "Mechanical Keyboard",
-            "description": "RGB backlit mechanical gaming keyboard with blue switches and aluminum frame",
-            "price": 89.99,
-            "image_url": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500",
-            "stock_quantity": 45,
-            "is_available": True
-        },
-        {
-            "name": "Wireless Mouse",
-            "description": "Ergonomic wireless mouse with adjustable DPI, silent clicks, and long battery life",
-            "price": 29.99,
-            "image_url": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500",
-            "stock_quantity": 75,
-            "is_available": True
-        },
-        {
-            "name": "USB-C Hub Adapter",
-            "description": "7-in-1 USB-C hub with HDMI, USB 3.0, SD card reader, and power delivery",
-            "price": 49.99,
-            "image_url": "https://images.unsplash.com/photo-1625842268584-8f3296236761?w=500",
-            "stock_quantity": 60,
-            "is_available": True
-        },
-        {
-            "name": "Laptop Stand",
-            "description": "Adjustable aluminum laptop stand with ergonomic design and heat dissipation",
-            "price": 44.99,
-            "image_url": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500",
-            "stock_quantity": 40,
-            "is_available": True
-        },
-        {
-            "name": "Webcam HD 1080p",
-            "description": "Full HD webcam with autofocus, built-in microphone, and wide-angle lens",
-            "price": 59.99,
-            "image_url": "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=500",
-            "stock_quantity": 35,
-            "is_available": True
-        },
-        {
-            "name": "External SSD 1TB",
-            "description": "Portable solid-state drive with ultra-fast transfer speeds and durable design",
-            "price": 129.99,
-            "image_url": "https://picsum.photos/seed/ssd-drive/500/500.jpg",
-            "stock_quantity": 25,
-            "is_available": True
-        },
-        {
-            "name": "Phone Stand Holder",
-            "description": "Adjustable cell phone stand compatible with all smartphones, perfect for desk",
-            "price": 14.99,
-            "image_url": "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=500",
-            "stock_quantity": 120,
-            "is_available": True
-        },
-        {
-            "name": "LED Desk Lamp",
-            "description": "Dimmable LED desk lamp with touch control, USB charging port, and eye-care technology",
-            "price": 34.99,
-            "image_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500",
-            "stock_quantity": 55,
-            "is_available": True
-        },
-        {
-            "name": "Bluetooth Speaker",
-            "description": "Portable waterproof Bluetooth speaker with 360° sound and 12-hour playtime",
-            "price": 54.99,
-            "image_url": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500",
-            "stock_quantity": 65,
-            "is_available": True
-        }
-    ]
-    
-    from sqlalchemy.orm import Session
-    
-    db = SessionLocal()
-    try:
-        # Check if data already exists
-        existing_count = db.query(Product).count()
-        if existing_count > 0:
-            print(f"Database already contains {existing_count} products. Skipping seed.")
-            return
-        
-        # Insert sample products
-        for product_data in sample_products:
-            product = Product(**product_data)
-            db.add(product)
-        
-        db.commit()
-        
-        # Verify insertion
-        total_products = db.query(Product).count()
-        print(f"✅ Successfully inserted {total_products} products!")
-        
-    except Exception as e:
-        db.rollback()
-        print(f"Error seeding data: {e}")
-        raise
-    finally:
-        db.close()
-
-
-def create_tables_with_sql():
-    """Create tables using SQL file"""
-    print("Creating database tables using SQL file...")
+    """Create database tables using init.sql"""
+    print("\n📦 Creating database tables...")
     
     sql_file = os.path.join(os.path.dirname(__file__), 'init.sql')
     
     if not os.path.exists(sql_file):
-        raise FileNotFoundError(f"SQL file not found: {sql_file}")
+        raise FileNotFoundError(f"init.sql not found: {sql_file}")
     
-    with open(sql_file, 'r', encoding='utf-8') as f:
-        sql_script = f.read()
-    
-    db = SessionLocal()
-    try:
-        # Split SQL script into individual statements and execute each one
-        # SQLite requires executing statements one by one when using SQLAlchemy
-        statements = [stmt.strip() for stmt in sql_script.split(';') if stmt.strip()]
-        
-        for statement in statements:
-            if statement:  # Skip empty statements
-                db.execute(text(statement))
-        
-        db.commit()
-        print("✅ Tables created successfully from init.sql!")
-    except Exception as e:
-        db.rollback()
-        print(f"❌ Error executing SQL: {e}")
-        raise
-    finally:
-        db.close()
+    execute_sql_file(sql_file)
+    print("✅ Tables created successfully")
 
 
-def seed_data_with_sql():
-    """Insert sample data using SQL file"""
-    print("Seeding sample data using SQL file...")
+def seed_data():
+    """Insert sample data using seed_data.sql"""
+    print("\n🌱 Seeding sample data...")
     
     sql_file = os.path.join(os.path.dirname(__file__), 'seed_data.sql')
     
     if not os.path.exists(sql_file):
-        raise FileNotFoundError(f"SQL file not found: {sql_file}")
+        raise FileNotFoundError(f"seed_data.sql not found: {sql_file}")
     
-    with open(sql_file, 'r', encoding='utf-8') as f:
-        sql_script = f.read()
+    execute_sql_file(sql_file)
     
-    db = SessionLocal()
+    # Verify data was inserted
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
     try:
-        # Split SQL script into individual statements and execute each one
-        statements = [stmt.strip() for stmt in sql_script.split(';') if stmt.strip()]
+        cursor.execute("SELECT COUNT(*) FROM users")
+        user_count = cursor.fetchone()[0]
         
-        for statement in statements:
-            if statement:  # Skip empty statements
-                db.execute(text(statement))
+        cursor.execute("SELECT COUNT(*) FROM products")
+        product_count = cursor.fetchone()[0]
         
-        db.commit()
-        
-        # Verify insertion
-        total_products = db.query(Product).count()
-        print(f"✅ Successfully inserted {total_products} products from seed_data.sql!")
+        print(f"\n✅ Data seeded successfully:")
+        print(f"   - Users: {user_count}")
+        print(f"   - Products: {product_count}")
         
     except Exception as e:
-        db.rollback()
-        print(f"❌ Error executing SQL: {e}")
-        raise
+        print(f"  ⚠️  Could not verify data: {e}")
     finally:
-        db.close()
+        conn.close()
 
 
-def init_with_orm():
-    """Initialize database using ORM method"""
-    print("=" * 60)
-    print("Internet A1 Shopping Cart - Database Initialization (ORM)")
-    print("=" * 60)
-    print()
+def verify_database():
+    """Verify database was initialized correctly"""
+    print("\n🔍 Verifying database...")
+    
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
     
     try:
-        # Create tables
+        # Check tables exist
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+        tables = [row[0] for row in cursor.fetchall()]
+        
+        required_tables = ['users', 'products', 'cart_items']
+        missing_tables = [t for t in required_tables if t not in tables]
+        
+        if missing_tables:
+            print(f"  ❌ Missing tables: {missing_tables}")
+            return False
+        
+        print(f"  ✅ All required tables exist: {', '.join(required_tables)}")
+        
+        # Check data
+        cursor.execute("SELECT COUNT(*) FROM users")
+        user_count = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM products")
+        product_count = cursor.fetchone()[0]
+        
+        if user_count == 0:
+            print(f"  ⚠️  No users found")
+        else:
+            print(f"  ✅ Users: {user_count}")
+        
+        if product_count == 0:
+            print(f"  ⚠️  No products found")
+        else:
+            print(f"  ✅ Products: {product_count}")
+        
+        return True
+        
+    except Exception as e:
+        print(f"  ❌ Verification failed: {e}")
+        return False
+    finally:
+        conn.close()
+
+
+def init_database(force=False):
+    """
+    Main initialization function using SQL files
+    """
+    print("=" * 70)
+    print("  Internet A2 Shopping Cart - Database Initialization (SQL)")
+    print("=" * 70)
+    
+    db_path = get_db_path()
+    
+    try:
+        # Handle force mode
+        if force:
+            print("\n⚠️  FORCE mode: Removing existing database...")
+            if os.path.exists(db_path):
+                os.remove(db_path)
+                print("  ✅ Database removed")
+        
+        # Check current state
+        schema_version = check_schema_version()
+        print(f"\n📊 Current schema version: {schema_version.upper()}")
+        
+        # Run migration if needed
+        if schema_version != 'empty':
+            run_migration()
+        
+        # Create tables (idempotent - uses CREATE TABLE IF NOT EXISTS)
         create_tables()
         
-        # Seed data
+        # Seed data (idempotent - uses INSERT OR IGNORE)
         seed_data()
         
-        print()
-        print("=" * 60)
-        print("✅ Database initialization completed successfully!")
-        print("=" * 60)
-        print()
+        # Verify
+        if verify_database():
+            print("\n" + "=" * 70)
+            print("✅ Database initialization completed successfully!")
+            print("=" * 70)
+            print("\n📝 Next steps:")
+            print("   - Start the application: ./restart.sh")
+            print("   - Login as admin: username='admin', password='admin123'")
+            print("   - Login as user: username='kuanlong.li', password='kuanlong.li'")
+            print()
+        else:
+            print("\n" + "=" * 70)
+            print("⚠️  Database initialization completed with warnings")
+            print("=" * 70)
+            print()
         
     except Exception as e:
-        print()
-        print("=" * 60)
+        print("\n" + "=" * 70)
         print(f"❌ Database initialization failed: {e}")
-        print("=" * 60)
-        sys.exit(1)
-
-
-def init_with_sql():
-    """Initialize database using SQL files method"""
-    print("=" * 60)
-    print("Internet A1 Shopping Cart - Database Initialization (SQL)")
-    print("=" * 60)
-    print()
-    
-    try:
-        # Create tables from SQL file
-        create_tables_with_sql()
-        
-        # Seed data from SQL file
-        seed_data_with_sql()
-        
+        print("=" * 70)
+        print("\nTroubleshooting:")
+        print("   - Check if database file is locked by another process")
+        print("   - Try: rm database/internet_a2.db && python init_db.py")
+        print("   - Run with --force flag to reset: python init_db.py --force")
         print()
-        print("=" * 60)
-        print("✅ Database initialization completed successfully!")
-        print("=" * 60)
-        print()
-        
-    except Exception as e:
-        print()
-        print("=" * 60)
-        print(f"❌ Database initialization failed: {e}")
-        print("=" * 60)
         sys.exit(1)
 
 
 def main():
-    """Main function to initialize database"""
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Initialize the database')
-    parser.add_argument('--method', type=str, choices=['orm', 'sql'], default='orm',
-                       help='Initialization method: orm (default) or sql')
+    """Main function"""
+    parser = argparse.ArgumentParser(
+        description='Initialize the Internet A2 database using SQL files',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python init_db.py              # Normal initialization (auto-detects schema)
+  python init_db.py --force      # Force re-initialization (drops all tables)
+
+SQL Files Used:
+  - init.sql: Database schema
+  - seed_data.sql: Sample data
+  - migration_a2.sql: A1 to A2 migration (if needed)
+        """
+    )
+    
+    parser.add_argument(
+        '--force',
+        action='store_true',
+        help='Force re-initialization by removing existing database'
+    )
     
     args = parser.parse_args()
-    
-    # Initialize based on method
-    if args.method == 'sql':
-        init_with_sql()
-    else:
-        init_with_orm()
+    init_database(force=args.force)
 
 
 if __name__ == "__main__":

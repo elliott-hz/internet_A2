@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import Register from '../Register/Register';
 import * as S from './Login.styles';
 
 const Login = () => {
+  const [showRegister, setShowRegister] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,6 +27,10 @@ const Login = () => {
     setLoading(false);
   };
 
+  if (showRegister) {
+    return <Register onSwitchToLogin={() => setShowRegister(false)} />;
+  }
+
   return (
     <S.LoginContainer>
       <S.LoginForm onSubmit={handleSubmit}>
@@ -39,7 +45,7 @@ const Login = () => {
             id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter username (kuanlong.li)"
+            placeholder="Enter username"
             required
             autoComplete="username"
           />
@@ -52,7 +58,7 @@ const Login = () => {
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password (kuanlong.li)"
+            placeholder="Enter password"
             required
             autoComplete="current-password"
           />
@@ -63,7 +69,10 @@ const Login = () => {
         </S.LoginButton>
         
         <S.LoginHint>
-          Please login to use the shopping cart
+          Don't have an account?{' '}
+          <S.RegisterLink onClick={() => setShowRegister(true)}>
+            Register here
+          </S.RegisterLink>
         </S.LoginHint>
       </S.LoginForm>
     </S.LoginContainer>

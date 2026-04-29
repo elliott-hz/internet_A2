@@ -1,9 +1,17 @@
--- Sample Product Data for Internet A1 E-commerce Shopping Cart
--- This seed data provides initial products for testing the application
+-- Sample Data for Internet A2 E-commerce Shopping Cart
+-- Includes: Users and Products
 -- Compatible with SQLite
 
+-- Insert default users (passwords are hashed using bcrypt)
+-- Admin user: username='admin', password='admin123'
+-- Test user: username='kuanlong.li', password='kuanlong.li'
+-- Note: These are pre-hashed passwords. In production, use AuthService.hash_password()
+INSERT OR IGNORE INTO users (username, email, hashed_password, is_admin) VALUES
+('admin', 'admin@example.com', '$2b$12$6iG2cxytZTC6LDAKgMMQ/uTHYzA9LHOPXMRpOyLbMAuwBPwwwRYrW', 1),
+('kuanlong.li', 'kuanlong.li@example.com', '$2b$12$YpwUbZpQiNDUUBVw/Z2B..mnh66c86nnek5ZUBdTnx3T/VW8QLfXK', 0);
+
 -- Insert sample products
-INSERT INTO products (name, description, price, image_url, stock_quantity, is_available) VALUES
+INSERT OR IGNORE INTO products (name, description, price, image_url, stock_quantity, is_available) VALUES
 ('Wireless Bluetooth Headphones', 'Premium noise-cancelling over-ear headphones with 30-hour battery life and superior sound quality', 79.99, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500', 50, 1),
 ('Smart Watch Pro', 'Feature-rich smartwatch with heart rate monitor, GPS, fitness tracking, and 7-day battery life', 199.99, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500', 30, 1),
 ('Portable Power Bank', '20000mAh high-capacity portable charger with fast charging and dual USB ports', 39.99, 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=500', 100, 1),
@@ -18,4 +26,5 @@ INSERT INTO products (name, description, price, image_url, stock_quantity, is_av
 ('Bluetooth Speaker', 'Portable waterproof Bluetooth speaker with 360° sound and 12-hour playtime', 54.99, 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500', 65, 1);
 
 -- Verify insertion
+SELECT COUNT(*) as total_users FROM users;
 SELECT COUNT(*) as total_products FROM products;

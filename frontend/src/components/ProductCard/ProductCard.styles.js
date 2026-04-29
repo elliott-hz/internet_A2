@@ -152,6 +152,30 @@ export const AddToCartButton = styled.button`
   }
 `;
 
+export const EditButton = styled.button`
+  width: 100%;
+  padding: 12px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 44px;
+
+  &:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
 export const CartIndicator = styled.div`
   padding: 12px;
   background-color: #e3f2fd;

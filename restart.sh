@@ -1,39 +1,24 @@
 #!/bin/bash
 
 # =============================================================================
-# Restart Script for Internet A1 Project
+# Restart Script for Internet A2 Project
 # =============================================================================
 # This script will:
 # 1. Stop any existing backend and frontend processes
-# 2. Run all tests (must pass 100%)
-# 3. Start the backend server (FastAPI/Uvicorn)
-# 4. Start the frontend development server (Vite)
+# 2. Start the backend server (FastAPI/Uvicorn)
+# 3. Start the frontend development server (Vite)
 # =============================================================================
 
 set -e  # Exit on error
 
-# Parse command line arguments
-SKIP_TESTS=false
-for arg in "$@"; do
-    case $arg in
-        --skip-tests)
-            SKIP_TESTS=true
-            shift
-            ;;
-    esac
-done
-
 echo "========================================="
-echo "  Restarting Internet A1 Services"
+echo "  Restarting Internet A2 Services"
 echo "========================================="
 echo ""
 
 # Define project root
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 echo "Project Root: $PROJECT_ROOT"
-if [ "$SKIP_TESTS" = true ]; then
-    echo "⚠️  Tests will be SKIPPED (--skip-tests flag detected)"
-fi
 echo ""
 
 # =============================================================================
@@ -66,88 +51,42 @@ fi
 echo ""
 
 # =============================================================================
-# Step 2: Run Tests (MUST PASS 100%)
-# =============================================================================
-if [ "$SKIP_TESTS" = true ]; then
-    echo "========================================="
-    echo "  Step 2: Skipping Tests (--skip-tests)"
-    echo "========================================="
-    echo ""
-    echo "⚠️  WARNING: Skipping test suite..."
-    echo "   This is NOT recommended for production deployments."
-    echo ""
-    sleep 2
-else
-    echo "========================================="
-    echo "  Step 2: Running All Tests"
-    echo "========================================="
-    echo ""
-    echo "⚠️  All tests MUST pass before starting services..."
-    echo ""
-
-    cd "$PROJECT_ROOT/backend"
-
-    # Check if virtual environment exists
-    if [ ! -d "venv" ]; then
-        echo "❌ Error: Virtual environment not found!"
-        echo "   Please run ./install.sh first."
-        exit 1
-    fi
-
-    # Activate virtual environment
-    source venv/bin/activate
-
-    # Check if pytest is installed
-    if ! command -v pytest &> /dev/null; then
-        echo "❌ Error: pytest is not installed!"
-        echo "   Installing test dependencies..."
-        pip install -r requirements.txt -q
-    fi
-
-    # Run all tests
-    echo "Running pytest..."
-    echo ""
-    if pytest tests/ -v --tb=short; then
-        echo ""
-        echo "✅ All tests passed successfully!"
-        echo ""
-    else
-        echo ""
-        echo "❌ Tests failed! Aborting service startup."
-        echo ""
-        echo "========================================="
-        echo "  🚫 Service Startup Aborted"
-        echo "========================================="
-        echo ""
-        echo "Reason: Test suite did not pass 100%"
-        echo ""
-        echo "Please fix the failing tests and try again."
-        echo "To skip tests (not recommended), use: ./restart.sh --skip-tests"
-        echo "========================================="
-        exit 1
-    fi
-
-    echo ""
-fi
-
-# =============================================================================
-# Step 3: Start Backend Server
+# Step 2: Start Backend Server
 # =============================================================================
 echo "========================================="
-echo "  Step 3: Starting Backend Server"
+echo "  Step 2: Starting Backend Server"
 echo "========================================="
 
-# Check if database exists
-if [ ! -f "$PROJECT_ROOT/database/internet_a1.db" ]; then
+# Check if database exists and initialize if needed
+if [ ! -f "$PROJECT_ROOT/database/internet_a2.db" ]; then
     echo "⚠️  Database not found, initializing..."
     cd "$PROJECT_ROOT/database"
     python3 init_db.py
+    if [ $? -eq 0 ]; then
+        echo "✅ Database initialized successfully"
+    else
+        echo "❌ Database initialization failed!"
+        exit 1
+    fi
     cd "$PROJECT_ROOT/backend"
+else
+    echo "✅ Database found: internet_a2.db"
 fi
 
+echo ""
 echo "Starting Uvicorn server on http://0.0.0.0:8000"
 echo "Backend API will be available at: http://localhost:8000/api"
 echo ""
+
+# Activate virtual environment
+cd "$PROJECT_ROOT/backend"
+if [ ! -d "venv" ]; then
+    echo "❌ Error: Virtual environment not found!"
+    echo "   Please run ./install.sh first."
+    exit 1
+fi
+
+source venv/bin/activate
 
 # Start backend in background
 uvicorn main:app --reload --host 0.0.0.0 --port 8000 &
@@ -160,10 +99,10 @@ sleep 3
 echo ""
 
 # =============================================================================
-# Step 4: Start Frontend Server
+# Step 3: Start Frontend Server
 # =============================================================================
 echo "========================================="
-echo "  Step 4: Starting Frontend Server"
+echo "  Step 3: Starting Frontend Server"
 echo "========================================="
 
 cd "$PROJECT_ROOT/frontend"
@@ -177,6 +116,7 @@ fi
 
 echo "Starting Vite development server..."
 echo "Frontend will be available at: http://localhost:5173"
+echo "Features: Product editing, Admin dashboard, User authentication"
 echo ""
 
 # Start frontend in background

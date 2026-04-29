@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# Install Script for Internet A1 Project
+# Install Script for Internet A2 Project
 # =============================================================================
 # This script will:
 # 1. Check prerequisites (Git, Node.js 18+, Python 3.9+)
@@ -14,7 +14,7 @@
 set -e  # Exit on error
 
 echo "========================================="
-echo "  Internet A1 Project Installation"
+echo "  Internet A2 Project Installation"
 echo "========================================="
 echo ""
 
@@ -145,33 +145,22 @@ fi
 echo ""
 
 # =============================================================================
-# Step 4: Database Setup
+# Step 4: Initialize Database
 # =============================================================================
 echo "========================================="
-echo "  Step 4: Setting Up Database"
+echo "  Step 4: Initializing Database"
 echo "========================================="
 
 cd "$PROJECT_ROOT/database"
-
-echo "Initializing database..."
-# python3 init_db.py --method=orm   # Use ORM method for better compatibility with SQLAlchemy
-python3 init_db.py --method=sql  # Use raw SQL method for direct execution (may require splitting statements for SQLite)
-
-# Verify database was created
-if [ -f "$PROJECT_ROOT/database/internet_a1.db" ]; then
-    echo "Database created successfully at: $PROJECT_ROOT/database/internet_a1.db"
-    
-    # Verify products were inserted
-    cd "$PROJECT_ROOT/backend"
-    source venv/bin/activate
-    PRODUCT_COUNT=$(python -c "from models.database import SessionLocal; from models.product import Product; db = SessionLocal(); count = db.query(Product).count(); db.close(); print(count)")
-    echo "Database initialized with $PRODUCT_COUNT products"
+python3 init_db.py
+if [ $? -eq 0 ]; then
+    echo "✅ Database initialized successfully"
 else
-    echo "Error: Database file was not created!"
+    echo "❌ Database initialization failed!"
     exit 1
 fi
 
-echo ""
+cd "$PROJECT_ROOT"
 
 # =============================================================================
 # Step 5: Frontend Setup
@@ -187,6 +176,7 @@ npm install
 
 if [ -d "node_modules" ]; then
     echo "Frontend dependencies installed"
+    echo "Including react-router-dom for product editing routing"
 else
     echo "Error: Frontend dependencies installation failed!"
     exit 1
@@ -198,12 +188,14 @@ echo ""
 # Installation Complete
 # =============================================================================
 echo "========================================="
-echo " Installation Complete!"
+echo " ✅ Installation Complete!"
 echo "========================================="
 echo ""
 echo "Next steps:"
-echo "1. Start the backend: ./restart.sh"
-echo "2. Start the frontend: cd frontend && npm run dev"
+echo "1. Start the application: ./restart.sh"
 echo ""
-echo "Or use the restart script to start both services."
+echo "The restart script will:"
+echo "  - Initialize database if needed"
+echo "  - Start backend server (http://localhost:8000)"
+echo "  - Start frontend server (http://localhost:5173)"
 echo ""

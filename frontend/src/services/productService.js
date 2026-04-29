@@ -2,12 +2,20 @@ import api from './api';
 
 /**
  * Product Service
- * Handles all product-related API calls
+ * Handles all product-related API calls including search
  */
 
 // Fetch all products
 export const getAllProducts = async () => {
   const response = await api.get('/products');
+  return response.data;
+};
+
+// Search products by query
+export const searchProducts = async (query) => {
+  const response = await api.get('/products/search', {
+    params: { query }
+  });
   return response.data;
 };
 

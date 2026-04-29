@@ -40,6 +40,8 @@ echo "Backend __pycache__ cache has been deleted"
 
 # Delete SQLite database file
 DB_FILES=(
+    "$BACKEND_DIR/database/internet_a2.db"
+    "$DATABASE_DIR/internet_a2.db"
     "$BACKEND_DIR/database/internet_a1.db"
     "$DATABASE_DIR/internet_a1.db"
 )

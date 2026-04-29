@@ -44,6 +44,13 @@ export const ErrorMessage = styled.div`
   text-align: center;
 `;
 
+export const LoadingMessage = styled.div`
+  color: #666;
+  padding: 40px;
+  text-align: center;
+  font-size: 16px;
+`;
+
 export const EmptyMessage = styled.div`
   color: #666;
   padding: 40px;

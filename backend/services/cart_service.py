@@ -1,6 +1,6 @@
 """
 Cart Service
-Business logic for shopping cart operations
+Business logic for shopping cart operations with user-specific carts
 """
 
 from sqlalchemy.orm import Session, joinedload
@@ -15,9 +15,27 @@ class CartService:
     """Service class for cart-related business logic"""
     
     @staticmethod
+    def get_user_cart_items(db: Session, user_id: int) -> List[CartItem]:
+        """
+        Get all items in a specific user's cart
+        
+        Args:
+            db: Database session
+            user_id: User ID
+            
+        Returns:
+            List of CartItem objects with product details
+        """
+        return db.query(CartItem).options(
+            joinedload(CartItem.product)
+        ).filter(
+            CartItem.user_id == user_id
+        ).order_by(CartItem.created_at).all()
+    
+    @staticmethod
     def get_all_items(db: Session) -> List[CartItem]:
         """
-        Get all items in the cart
+        Get all items in the cart (legacy method - use get_user_cart_items instead)
         
         Args:
             db: Database session
@@ -44,7 +62,33 @@ class CartService:
         Raises:
             NotFoundError: If cart item is not found
         """
-        cart_item = db.query(CartItem).filter(CartItem.id == item_id).first()
+        cart_item = db.query(CartItem).options(
+            joinedload(CartItem.product)
+        ).filter(CartItem.id == item_id).first()
+        if not cart_item:
+            raise NotFoundError("Cart Item")
+        return cart_item
+    
+    @staticmethod
+    def get_user_item_by_product(db: Session, user_id: int, product_id: int) -> CartItem:
+        """
+        Get cart item by user ID and product ID
+        
+        Args:
+            db: Database session
+            user_id: User ID
+            product_id: Product ID
+            
+        Returns:
+            CartItem object
+            
+        Raises:
+            NotFoundError: If cart item is not found
+        """
+        cart_item = db.query(CartItem).filter(
+            CartItem.user_id == user_id,
+            CartItem.product_id == product_id
+        ).first()
         if not cart_item:
             raise NotFoundError("Cart Item")
         return cart_item
@@ -52,7 +96,7 @@ class CartService:
     @staticmethod
     def get_item_by_product(db: Session, product_id: int) -> CartItem:
         """
-        Get cart item by product ID
+        Get cart item by product ID (legacy method)
         
         Args:
             db: Database session
@@ -73,6 +117,7 @@ class CartService:
     def create_item(
         db: Session, 
         cart_item_data: CartItemCreate,
+        user_id: int,
         product_stock_quantity: int,
         product_available: bool
     ) -> CartItem:
@@ -82,6 +127,7 @@ class CartService:
         Args:
             db: Database session
             cart_item_data: Cart item creation data
+            user_id: User ID who owns this cart item
             product_stock_quantity: Product's stock quantity for validation
             product_available: Product's availability status
             
@@ -107,7 +153,11 @@ class CartService:
         if cart_item_data.quantity > product_stock_quantity:
             raise StockError(f"Only {product_stock_quantity} items available in stock")
         
-        cart_item = CartItem(**cart_item_data.model_dump())
+        # Create cart item with user_id
+        cart_item_dict = cart_item_data.model_dump()
+        cart_item_dict['user_id'] = user_id
+        
+        cart_item = CartItem(**cart_item_dict)
         db.add(cart_item)
         db.commit()
         db.refresh(cart_item)
@@ -195,9 +245,21 @@ class CartService:
         return True
     
     @staticmethod
+    def clear_user_cart(db: Session, user_id: int) -> None:
+        """
+        Clear all items from a specific user's cart
+        
+        Args:
+            db: Database session
+            user_id: User ID
+        """
+        db.query(CartItem).filter(CartItem.user_id == user_id).delete()
+        db.commit()
+    
+    @staticmethod
     def clear_cart(db: Session) -> None:
         """
-        Clear all items from the cart
+        Clear all items from the cart (legacy method)
         
         Args:
             db: Database session

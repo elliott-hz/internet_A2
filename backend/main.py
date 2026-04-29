@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from config import settings
 
 from models.database import engine, Base
-from routers import products, cart, auth
+from routers import products, cart, auth, admin
 from utils.exceptions import NotFoundError, ValidationError, DatabaseError, UnauthorizedError, StockError
 
 # Create database tables
@@ -17,9 +17,9 @@ Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Internet A1 Shopping Cart API",
-    description="E-commerce Shopping Cart API for Internet A1 Assignment",
-    version="1.0.0"
+    title="Internet A2 Shopping Cart API",
+    description="E-commerce Shopping Cart API for Internet A2 Assignment - Advanced Features",
+    version="2.0.0"
 )
 
 # Configure CORS
@@ -35,6 +35,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(products.router, prefix="/api/products", tags=["Products"])
 app.include_router(cart.router, prefix="/api/cart", tags=["Shopping Cart"])
+app.include_router(admin.router, prefix="/api", tags=["Admin"])
 
 
 # Exception Handlers

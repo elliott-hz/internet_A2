@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
     # Application
-    APP_NAME: str = "Internet A1 Shopping Cart"
-    APP_VERSION: str = "1.0.0"
+    APP_NAME: str = "Internet A2 Shopping Cart"
+    APP_VERSION: str = "2.0.0"
     DEBUG: bool = True
     
     # Database - SQLite Configuration
@@ -22,20 +22,25 @@ class Settings(BaseSettings):
     # MySQL Configuration (only needed if DATABASE_TYPE is "mysql")
     DATABASE_HOST: str = "localhost"
     DATABASE_PORT: int = 3306
-    DATABASE_NAME: str = "internet_a1"
+    DATABASE_NAME: str = "internet_a2"
     DATABASE_USER: str = "root"
     DATABASE_PASSWORD: str = ""
+    
+    # JWT Authentication
+    SECRET_KEY: str = "your-super-secret-key-change-in-production-2024-internet-a2"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
     
     @property
     def database_url(self) -> str:
         """Construct database URL based on type"""
         if self.DATABASE_TYPE == "sqlite":
             # Use SQLite for development (no installation required)
-            # Database file will be created in root_path/database/internet_a1.db
+            # Database file will be created in root_path/database/internet_a2.db
             db_dir = os.path.join(os.path.dirname(__file__), "..", "database")
             # Ensure directory exists
             os.makedirs(db_dir, exist_ok=True)
-            db_path = os.path.join(db_dir, "internet_a1.db")
+            db_path = os.path.join(db_dir, "internet_a2.db")
             return f"sqlite:///{db_path}"
         else:
             # MySQL connection string

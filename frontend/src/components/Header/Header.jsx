@@ -28,7 +28,7 @@ const BANNER_IMAGES = [
 
 const Header = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -51,7 +51,7 @@ const Header = () => {
               <S.BannerOverlay />
               <S.BannerContent>
                 <S.BannerText>{image.text}</S.BannerText>
-                <S.ShopName>Internet A1 Shop</S.ShopName>
+                <S.ShopName>Internet A2 Shop</S.ShopName>
               </S.BannerContent>
             </S.BannerSlide>
           ))}
@@ -72,6 +72,7 @@ const Header = () => {
           <S.UserBar>
             <S.UserInfo>
               Welcome, <strong>{user?.username}</strong>
+              {isAdmin && <S.AdminBadge>ADMIN</S.AdminBadge>}
             </S.UserInfo>
             <S.LogoutButton onClick={logout}>
               Logout

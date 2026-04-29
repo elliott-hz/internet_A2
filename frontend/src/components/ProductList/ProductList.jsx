@@ -1,27 +1,34 @@
 import { memo } from 'react';
 import { useCartOperations } from '../../hooks/useCart';
+import SearchBar from '../SearchBar/SearchBar';
 import ProductCard from '../ProductCard/ProductCard';
 import * as S from './ProductList.styles';
 
 const ProductList = () => {
-  const { products, loading, error } = useCartOperations();
+  const { displayedProducts, loading, error } = useCartOperations();
 
   if (loading) {
-    return <S.Container>Loading products...</S.Container>;
+    return <S.Container><SearchBar /><S.LoadingMessage>Loading products...</S.LoadingMessage></S.Container>;
   }
 
   if (error) {
-    return <S.ErrorMessage>{error}</S.ErrorMessage>;
+    return <S.Container><SearchBar /><S.ErrorMessage>{error}</S.ErrorMessage></S.Container>;
   }
 
-  if (!products || products.length === 0) {
-    return <S.EmptyMessage>No products available</S.EmptyMessage>;
+  if (!displayedProducts || displayedProducts.length === 0) {
+    return (
+      <S.Container>
+        <SearchBar />
+        <S.EmptyMessage>No products found</S.EmptyMessage>
+      </S.Container>
+    );
   }
 
   return (
     <S.Container>
+      <SearchBar />
       <S.ProductGrid>
-        {products.map((product) => (
+        {displayedProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </S.ProductGrid>

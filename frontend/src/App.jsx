@@ -1,8 +1,11 @@
 import { useAuth } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header/Header';
 import ProductList from './components/ProductList/ProductList';
 import ShoppingCart from './components/ShoppingCart/ShoppingCart';
 import Login from './components/Login/Login';
+import AdminDashboard from './components/AdminDashboard/AdminDashboard';
+import ProductEditPage from './components/ProductEditPage/ProductEditPage';
 import styled from 'styled-components';
 
 const MainContainer = styled.div`
@@ -36,7 +39,7 @@ const ContentWrapper = styled.div`
 
 // Main content component with auth check
 function AppContent() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
 
   if (loading) {
     return (
@@ -50,9 +53,13 @@ function AppContent() {
     <MainContainer>
       <ContentWrapper>
         <ProductList />
-        {/* Show ShoppingCart when logged in, Login when not logged in */}
+        {/* Show different components based on auth status and role */}
         {isAuthenticated ? (
-          <ShoppingCart />
+          isAdmin ? (
+            <AdminDashboard />  // Admin sees dashboard instead of personal cart
+          ) : (
+            <ShoppingCart />    // Regular users see their cart
+          )
         ) : (
           <Login />
         )}
@@ -63,10 +70,13 @@ function AppContent() {
 
 function App() {
   return (
-    <>
+    <Router>
       <Header />
-      <AppContent />
-    </>
+      <Routes>
+        <Route path="/" element={<AppContent />} />
+        <Route path="/product/:id/edit" element={<ProductEditPage />} />
+      </Routes>
+    </Router>
   );
 }
 

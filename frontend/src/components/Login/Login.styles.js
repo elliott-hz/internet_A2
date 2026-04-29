@@ -101,3 +101,14 @@ export const LoginHint = styled.div`
   margin-top: 10px;
   line-height: 1.5;
 `;
+
+export const RegisterLink = styled.span`
+  color: #4caf50;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+
+  &:hover {
+    color: #45a049;
+  }
+`;
