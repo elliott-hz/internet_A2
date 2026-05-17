@@ -123,10 +123,10 @@ export const CartItem = styled.div`
 
 export const ItemDetails = styled.div`
   flex: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(150px, 2fr) 100px 120px 150px;
+  gap: 12px;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
   min-width: 0;
 
   .name {
@@ -134,11 +134,12 @@ export const ItemDetails = styled.div`
     color: #333;
     font-size: 14px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .quantity,
-  .price,
-  .subtotal {
+  .price {
     font-size: 13px;
     color: #666;
     white-space: nowrap;
@@ -147,11 +148,13 @@ export const ItemDetails = styled.div`
   .subtotal {
     font-weight: 600;
     color: #4caf50;
+    font-size: 13px;
+    white-space: nowrap;
+    justify-self: end;
   }
 
   .separator {
-    color: #ccc;
-    white-space: nowrap;
+    display: none;
   }
 `;
 
