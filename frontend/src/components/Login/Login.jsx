@@ -74,6 +74,13 @@ const Login = () => {
             Register here
           </S.RegisterLink>
         </S.LoginHint>
+        
+        <S.AdminHint>
+          <S.AdminTooltip>
+            Admin Credentials
+            <S.TooltipText>default username: admin, password: admin123</S.TooltipText>
+          </S.AdminTooltip>
+        </S.AdminHint>
       </S.LoginForm>
     </S.LoginContainer>
   );

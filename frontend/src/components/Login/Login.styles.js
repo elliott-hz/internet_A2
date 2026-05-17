@@ -112,3 +112,61 @@ export const RegisterLink = styled.span`
     color: #45a049;
   }
 `;
+
+export const AdminHint = styled.div`
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  margin-top: 8px;
+  line-height: 1.5;
+`;
+
+export const AdminTooltip = styled.span`
+  color: #ff9800;
+  cursor: help;
+  font-weight: 600;
+  text-decoration: underline dotted;
+  position: relative;
+  display: inline-block;
+
+  &:hover {
+    color: #f57c00;
+  }
+`;
+
+export const TooltipText = styled.span`
+  visibility: hidden;
+  width: 280px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+  }
+
+  ${AdminTooltip}:hover & {
+    visibility: visible;
+    opacity: 1;
+  }
+`;
