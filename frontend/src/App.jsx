@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from './components/Header/Header';
@@ -79,9 +80,24 @@ function AppContent() {
   );
 }
 
+// Admin view with toggle between dashboard and product list
+function AdminView({ showProductList, onToggleView }) {
+  return (
+    <MainContainer>
+      {showProductList ? (
+        <ProductList />
+      ) : (
+        <AdminDashboard />
+      )}
+    </MainContainer>
+  );
+}
+
 // Router wrapper component to provide navigation context
 function AppWithRouter() {
   const navigate = useNavigate();
+  const { isAuthenticated, isAdmin } = useAuth();
+  const [showProductList, setShowProductList] = useState(false);
 
   const handleNavigation = (page) => {
     if (page === 'change-password') {
@@ -89,11 +105,25 @@ function AppWithRouter() {
     }
   };
 
+  const handleToggleAdminView = () => {
+    setShowProductList(!showProductList);
+  };
+
   return (
     <>
-      <Header onNavigate={handleNavigation} />
+      <Header 
+        onNavigate={handleNavigation} 
+        onToggleAdminView={isAdmin ? handleToggleAdminView : undefined}
+        showProductList={isAdmin ? showProductList : undefined}
+      />
       <Routes>
-        <Route path="/" element={<AppContent />} />
+        <Route path="/" element={
+          isAdmin && isAuthenticated ? (
+            <AdminView showProductList={showProductList} onToggleView={handleToggleAdminView} />
+          ) : (
+            <AppContent />
+          )
+        } />
         <Route path="/product/:id/edit" element={<ProductEditPage />} />
         <Route path="/change-password" element={<AppContent />} />
       </Routes>

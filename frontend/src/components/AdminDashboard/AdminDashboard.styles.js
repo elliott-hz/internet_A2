@@ -2,9 +2,11 @@ import styled from 'styled-components';
 
 export const Container = styled.div`
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
   background: white;
   border-radius: 8px;
-  padding: 20px;
+  padding: 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 `;
 

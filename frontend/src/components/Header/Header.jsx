@@ -27,7 +27,7 @@ const BANNER_IMAGES = [
   },
 ];
 
-const Header = ({ onNavigate }) => {
+const Header = ({ onNavigate, onToggleAdminView, showProductList }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
@@ -43,6 +43,12 @@ const Header = ({ onNavigate }) => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleToggleView = () => {
+    if (onToggleAdminView) {
+      onToggleAdminView();
+    }
   };
 
   return (
@@ -74,7 +80,7 @@ const Header = ({ onNavigate }) => {
           ))}
         </S.BannerIndicators>
 
-        {/* User Info and Logout Button - Overlay on banner */}
+        {/* User Info and Action Buttons - Overlay on banner */}
         {isAuthenticated && (
           <S.UserBar>
             <S.UserInfo>
@@ -82,6 +88,12 @@ const Header = ({ onNavigate }) => {
               {isAdmin && <S.AdminBadge>ADMIN</S.AdminBadge>}
             </S.UserInfo>
             <S.UserActions>
+              {/* Admin view toggle button */}
+              {isAdmin && (
+                <S.ToggleViewButton onClick={handleToggleView}>
+                  {showProductList ? 'Admin Dashboard' : 'Edit Products'}
+                </S.ToggleViewButton>
+              )}
               <S.ChangePasswordButton onClick={() => onNavigate && onNavigate('change-password')}>
                 Change Password
               </S.ChangePasswordButton>
