@@ -1,4 +1,4 @@
-# Internet A1 - E-commerce Shopping Cart
+# Internet A2 - E-commerce Shopping Cart
 
 ## Quick Start
 
@@ -90,20 +90,23 @@ This is a single-page e-commerce shopping cart application that allows users to 
 ## 3. Folder Structure
 
 ```
-internet_A1/
+internet_A2/
 ├── README.md                    # Project documentation (this file)
-├── Assignment.md                # Assignment requirements
+├── Allocation.md                # Task allocation document
 ├── cleanup.sh                   # Cleanup script
 ├── restart.sh                   # Restart script
 ├── install.sh                   # Install script
 └── .gitignore                   # Git ignore rules
 │
+├── assignment/                  # Assignment requirements and documentation
+│   ├── A2_Complete_Documentation.md
+│   ├── Assignment1-requirement.md
+│   └── Assignment2-requirement.md
+│
 ├── frontend/                    # React Frontend Application
 │   ├── index.html              # Single HTML entry point
 │   ├── package.json            # Node.js dependencies & scripts
 │   ├── vite.config.js          # Vite build configuration
-│   ├── .eslintrc.json          # ESLint configuration
-│   ├── .prettierrc             # Prettier settings
 │   │
 │   ├── src/                    # Source code
 │   │   ├── main.jsx            # React entry point
@@ -128,6 +131,18 @@ internet_A1/
 │   │   │   ├── Login/          # Login form component
 │   │   │   │   ├── Login.jsx
 │   │   │   │   └── Login.styles.js
+│   │   │   ├── Register/       # Registration form component
+│   │   │   │   ├── Register.jsx
+│   │   │   │   └── Register.styles.js
+│   │   │   ├── SearchBar/      # Real-time search bar
+│   │   │   │   ├── SearchBar.jsx
+│   │   │   │   └── SearchBar.styles.js
+│   │   │   ├── AdminDashboard/ # Admin dashboard for viewing all carts
+│   │   │   │   ├── AdminDashboard.jsx
+│   │   │   │   └── AdminDashboard.styles.js
+│   │   │   ├── ProductEditPage/# Product editing page for admins
+│   │   │   │   ├── ProductEditPage.jsx
+│   │   │   │   └── ProductEditPage.styles.js
 │   │   │   └── Modal/          # Confirmation modal and Toast
 │   │   │       ├── Modal.jsx       # Confirmation dialog
 │   │   │       ├── Modal.styles.js
@@ -136,28 +151,31 @@ internet_A1/
 │   │   │
 │   │   ├── hooks/              # Custom React hooks
 │   │   │   ├── useCart.js      # Cart operations hook (uses CartContext)
-│   │   │   ├── useProducts.js  # Products fetching hook (deprecated - use ProductsContext)
+│   │   │   ├── useProducts.js  # Products fetching hook
 │   │   │   └── useApi.js       # Generic API calls hook
 │   │   │
 │   │   ├── services/           # API integration layer
 │   │   │   ├── api.js          # Axios instance configuration
 │   │   │   ├── productService.js # Product-related API calls
-│   │   │   └── cartService.js  # Cart-related API calls
+│   │   │   ├── cartService.js  # Cart-related API calls
+│   │   │   ├── authService.js  # Authentication API calls
+│   │   │   └── adminService.js # Admin operations API calls
 │   │   │
 │   │   ├── context/            # React Context providers
 │   │   │   ├── CartContext.jsx # Global cart state management with optimistic updates
-│   │   │   ├── ProductsContext.jsx # Global products state sharing (avoid repeated API calls)
-│   │   │   └── AuthContext.jsx # Authentication state management
+│   │   │   ├── ProductsContext.jsx # Global products state sharing
+│   │   │   ├── AuthContext.jsx # Authentication state management
+│   │   │   └── AdminContext.jsx # Admin dashboard state management
 │   │   │
 │   │   ├── utils/              # Helper functions
 │   │   │   ├── formatters.js   # Price/date formatting
 │   │   │   └── validators.js   # Input validation
 │   │   │
 │   │   ├── assets/             # Static resources
-│   │   │   ├── images/         # Product images, icons
-│   │   │   └── styles/         # Global styles
-│   │   │       ├── global.js   # Global styled components
-│   │   │       └── variables.js # CSS variables (colors, spacing)
+│   │   │   ├── styles/         # Global styles
+│   │   │   │   ├── global.js   # Global styled components
+│   │   │   │   └── variables.js # CSS variables (colors, spacing)
+│   │   │   └── README.md       # Assets documentation
 │   │   │
 │   │   └── constants/          # Application constants
 │   │       └── index.js        # API endpoints, config values
@@ -168,7 +186,6 @@ internet_A1/
 ├── backend/                     # FastAPI Backend Application
 │   ├── main.py                 # FastAPI app entry point
 │   ├── config.py               # Configuration settings
-│   ├── requirements.txt        # Python dependencies
 │   ├── pyproject.toml          # Black & Flake8 configuration
 │   └── .gitignore              # Python git ignore rules
 │   │
@@ -176,272 +193,37 @@ internet_A1/
 │   │   ├── __init__.py
 │   │   ├── database.py         # Database connection
 │   │   ├── product.py          # Product model
-│   │   └── cart_item.py        # Cart item model
+│   │   ├── cart_item.py        # Cart item model
+│   │   └── user.py             # User model
 │   │
 │   ├── schemas/                # Pydantic schemas (data validation)
 │   │   ├── __init__.py
 │   │   ├── product.py          # Product schemas
-│   │   └── cart_item.py        # Cart item schemas
+│   │   ├── cart_item.py        # Cart item schemas
+│   │   └── user.py             # User schemas (A2)
 │   │
 │   ├── routers/                # API route handlers
 │   │   ├── __init__.py
 │   │   ├── products.py         # Product endpoints
-│   │   └── cart.py             # Cart endpoints
+│   │   ├── cart.py             # Cart endpoints
+│   │   ├── auth.py             # Authentication endpoints
+│   │   └── admin.py            # Admin endpoints
 │   │
 │   ├── services/               # Business logic layer
 │   │   ├── __init__.py
 │   │   ├── product_service.py  # Product operations
-│   │   └── cart_service.py     # Cart operations
+│   │   ├── cart_service.py     # Cart operations
+│   │   └── auth_service.py     # Authentication service
 │   │
 │   └── utils/                  # Backend utilities
 │       ├── __init__.py
-│       └── exceptions.py       # Custom exception handlers
+│       ├── exceptions.py       # Custom exception handlers
+│       └── session_store.py    # Session storage utility
 │
 └── database/                    # Database Setup Scripts
     ├── init.sql                # SQLite schema initialization (SQL method)
     ├── seed_data.sql           # Sample product data (SQL method)
     ├── init_db.py              # Database initialization script
+    ├── migration_a2.sql        # A2 database migrations (users table)
     └── README.md               # Database setup instructions
-```
-
-## 4. Troubleshooting Guide
-
-This guide provides solutions for common issues you may encounter while setting up or running the Internet A1 project.
-
-### 4.1 Installation Issues
-
-#### 1. Prerequisites Check Failed
-
-**Error**: Git/Node.js/Python is not installed
-
-**Solution**:
-```bash
-# Install Git
-# macOS: Install Xcode Command Line Tools
-xcode-select --install
-
-# Or download from: https://git-scm.com/downloads
-
-# Install Node.js 18.x or higher
-# Download from: https://nodejs.org/en/download/
-
-# Install Python 3.9 or higher
-# Download from: https://www.python.org/downloads/
-```
-
-**Verify installations**:
-```bash
-git --version
-node -v
-npm -v
-python3 --version
-```
-
-#### 2. Backend Dependencies Installation Failed
-
-**Error**: `pip install` fails or import errors occur
-
-**Solution**:
-```bash
-cd backend
-
-# Remove virtual environment and recreate
-rm -rf venv
-python3 -m venv venv
-source venv/bin/activate
-
-# Reinstall dependencies
-pip install -r requirements.txt --force-reinstall
-```
-
-#### 3. Frontend Dependencies Installation Failed
-
-**Error**: `npm install` fails
-
-**Solution**:
-```bash
-cd frontend
-
-# Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm cache clean --force
-npm install
-```
-
-
-### 4.2 Backend Issues
-
-#### 1. Backend Won't Start
-
-**Error**: Cannot start Uvicorn server
-
-**Solution 1 - Check port 8000**:
-```bash
-# Check if port 8000 is in use
-lsof -i :8000
-
-# Kill the process using port 8000
-kill -9 <PID>
-
-# Or use the restart script
-./restart.sh
-```
-
-**Solution 2 - Verify virtual environment**:
-```bash
-cd backend
-source venv/bin/activate
-
-# Test if you can run the app
-python main.py
-```
-
-**Solution 3 - Check for syntax errors**:
-```bash
-cd backend
-python -m py_compile main.py
-```
-
-#### 2. Backend Import Errors
-
-**Error**: `ModuleNotFoundError` or `ImportError`
-
-**Solution**:
-```bash
-cd backend
-source venv/bin/activate
-
-# Reinstall dependencies
-pip install -r requirements.txt --force-reinstall
-
-# Verify installation
-python -c "import fastapi; import sqlalchemy; print('All imports OK')"
-```
-
-#### 3. Database Connection Failed
-
-**Error**: Cannot connect to database
-
-**Solution**:
-```bash
-# Check if database file exists
-ls -lh database/internet_a1.db
-
-# If not, reinitialize database
-cd database
-python init_db.py
-
-# Verify tables and seed data were created
-see root_path/database/README.md for more details
-```
-
-### 4.3 Frontend Issues
-
-#### 1. Frontend Won't Start
-
-**Error**: Vite dev server fails to start
-
-**Solution 1 - Check port 5173**:
-```bash
-# Check if port 5173 is in use
-lsof -i :5173
-
-# Kill the process
-kill -9 <PID>
-
-# Restart frontend
-cd frontend
-npm run dev
-```
-
-**Solution 2 - Reinstall dependencies**:
-```bash
-cd frontend
-rm -rf node_modules package-lock.json
-npm install
-npm run dev
-```
-
-**Solution 3 - Clear Vite cache**:
-```bash
-cd frontend
-rm -rf node_modules/.vite
-npm run dev
-```
-
-#### 2. Frontend Build Errors
-
-**Error**: Compilation or build errors
-
-**Solution**:
-```bash
-cd frontend
-
-# Clear everything and reinstall
-rm -rf node_modules package-lock.json dist
-npm cache clean --force
-npm install
-
-# Try running again
-npm run dev
-```
-
-### 4.4 Port Conflicts
-
-#### 1. Port 8000 Already in Use
-
-**Solution**:
-```bash
-# Find process using port 8000
-lsof -i :8000
-
-# Kill the process
-kill -9 <PID>
-
-# Or change port in backend/main.py
-# Look for: uvicorn.run(..., port=8000)
-# Change to: uvicorn.run(..., port=8001)
-```
-
-#### 2. Port 5173 Already in Use
-
-**Solution**:
-```bash
-# Find process using port 5173
-lsof -i :5173
-
-# Kill the process
-kill -9 <PID>
-
-# Or change port in frontend/vite.config.js
-# Add: server: { port: 5174 }
-```
-
-### 4.5 General Debugging Tips
-
-#### 1. Check All Services Status
-
-```bash
-# Check if backend is running
-curl http://localhost:8000/api/health
-
-# Check if frontend is running
-curl http://localhost:5173
-
-# List all related processes
-ps aux | grep -E 'uvicorn|node|vite'
-
-# Check ports
-lsof -i :8000
-lsof -i :5173
-```
-
-#### 2. Clean Restart
-
-```bash
-# Stop all services
-kill $(lsof -ti :8000) $(lsof -ti :5173) 2>/dev/null || true
-
-# Clean and restart everything
-./install.sh
 ```
