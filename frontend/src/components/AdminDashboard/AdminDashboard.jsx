@@ -44,8 +44,10 @@ const AdminDashboard = () => {
         {userCarts.user_carts.map((userCart) => (
           <S.UserCartCard key={userCart.user_id}>
             <S.UserHeader>
-              <h3>{userCart.username}</h3>
-              <span>{userCart.email}</span>
+              <div className="user-info">
+                <h3>{userCart.username}</h3>
+                <span>{userCart.email}</span>
+              </div>
               <S.CartSummary>
                 Items: {userCart.cart_items_count} | 
                 Total: ${userCart.total_value.toFixed(2)}
@@ -60,8 +62,11 @@ const AdminDashboard = () => {
                   )}
                   <S.ItemDetails>
                     <div className="name">{item.product_name}</div>
+                    <span className="separator">|</span>
                     <div className="quantity">Qty: {item.quantity}</div>
+                    <span className="separator">|</span>
                     <div className="price">${item.price.toFixed(2)} each</div>
+                    <span className="separator">|</span>
                     <div className="subtotal">Subtotal: ${item.subtotal.toFixed(2)}</div>
                   </S.ItemDetails>
                 </S.CartItem>

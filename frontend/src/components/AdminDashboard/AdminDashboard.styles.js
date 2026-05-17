@@ -6,18 +6,18 @@ export const Container = styled.div`
   margin: 0 auto;
   background: white;
   border-radius: 8px;
-  padding: 30px;
+  padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
 export const Header = styled.div`
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 2px solid #f5f5f5;
 
   h2 {
-    margin: 0 0 16px 0;
-    font-size: 24px;
+    margin: 0 0 12px 0;
+    font-size: 22px;
     color: #333;
   }
 `;
@@ -40,7 +40,7 @@ export const Stats = styled.div`
 export const UserCartsList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 `;
 
 export const UserCartCard = styled.div`
@@ -55,67 +55,85 @@ export const UserCartCard = styled.div`
 `;
 
 export const UserHeader = styled.div`
-  padding: 16px;
+  padding: 12px 16px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 
   h3 {
-    margin: 0 0 4px 0;
-    font-size: 18px;
+    margin: 0;
+    font-size: 16px;
+    white-space: nowrap;
   }
 
   span {
-    font-size: 14px;
+    font-size: 13px;
     opacity: 0.9;
+    white-space: nowrap;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 `;
 
 export const CartSummary = styled.div`
-  margin-top: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.2);
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: 4px;
-  display: inline-block;
+  white-space: nowrap;
 `;
 
 export const ItemsList = styled.div`
-  padding: 16px;
+  padding: 12px;
   background: #fafafa;
 `;
 
 export const CartItem = styled.div`
   display: flex;
-  gap: 16px;
-  padding: 12px;
+  gap: 12px;
+  padding: 10px 12px;
   background: white;
   border-radius: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  align-items: center;
 
   &:last-child {
     margin-bottom: 0;
   }
 
   img {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     object-fit: cover;
     border-radius: 4px;
+    flex-shrink: 0;
   }
 `;
 
 export const ItemDetails = styled.div`
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-width: 0;
 
   .name {
     font-weight: 600;
     color: #333;
-    font-size: 15px;
+    font-size: 14px;
+    white-space: nowrap;
   }
 
   .quantity,
@@ -123,12 +141,17 @@ export const ItemDetails = styled.div`
   .subtotal {
     font-size: 13px;
     color: #666;
+    white-space: nowrap;
   }
 
   .subtotal {
     font-weight: 600;
     color: #4caf50;
-    margin-top: 4px;
+  }
+
+  .separator {
+    color: #ccc;
+    white-space: nowrap;
   }
 `;
 
