@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import * as S from './Header.styles';
 
@@ -29,6 +30,7 @@ const BANNER_IMAGES = [
 const Header = ({ onNavigate }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -37,6 +39,11 @@ const Header = ({ onNavigate }) => {
 
     return () => clearInterval(timer);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <S.HeaderContainer>
@@ -78,7 +85,7 @@ const Header = ({ onNavigate }) => {
               <S.ChangePasswordButton onClick={() => onNavigate && onNavigate('change-password')}>
                 Change Password
               </S.ChangePasswordButton>
-              <S.LogoutButton onClick={logout}>
+              <S.LogoutButton onClick={handleLogout}>
                 Logout
               </S.LogoutButton>
             </S.UserActions>
