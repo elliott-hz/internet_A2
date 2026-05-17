@@ -26,13 +26,13 @@ class UserCreate(BaseModel):
 
 class UserLogin(BaseModel):
     """Schema for user login"""
-    username: str = Field(..., description="Username or email")
+    email: str = Field(..., description="Email address")
     password: str = Field(..., description="Password")
     
     class Config:
         json_schema_extra = {
             "example": {
-                "username": "johndoe",
+                "email": "john@example.com",
                 "password": "securepass123"
             }
         }

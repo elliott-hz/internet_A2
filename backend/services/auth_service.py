@@ -97,9 +97,9 @@ class AuthService:
         return db_user
     
     @staticmethod
-    def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
-        """Authenticate a user with username and password"""
-        user = db.query(User).filter(User.username == username).first()
+    def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
+        """Authenticate a user with email and password"""
+        user = db.query(User).filter(User.email == email).first()
         
         if not user:
             return None

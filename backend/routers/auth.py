@@ -189,18 +189,18 @@ async def login(
     """
     User login
     
-    - **username**: Username or email
+    - **email**: Email address
     - **password**: Password
     
     Returns JWT access token and user information on successful authentication
     """
     # Authenticate user
-    user = AuthService.authenticate_user(db, login_data.username, login_data.password)
+    user = AuthService.authenticate_user(db, login_data.email, login_data.password)
     
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password"
+            detail="Invalid email or password"
         )
     
     # Generate JWT token

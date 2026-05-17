@@ -282,8 +282,8 @@ def init_database(force=False):
             print("=" * 70)
             print("\n📝 Next steps:")
             print("   - Start the application: ./restart.sh")
-            print("   - Login as admin: username='admin', password='admin123'")
-            print("   - Login as user: username='kuanlong.li', password='kuanlong.li'")
+            print("   - Login as admin: email='admin@example.com', password='admin123'")
+            print("   - Login as user: email='kuanlong.li@example.com', password='kuanlong.li'")
             print()
         else:
             print("\n" + "=" * 70)

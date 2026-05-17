@@ -35,8 +35,14 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = async (username, password) => {
-    const result = await authService.login(username, password);
+  const login = async (email, password) => {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { success: false, error: 'Invalid email format' };
+    }
+    
+    const result = await authService.login(email, password);
     if (result.success) {
       setUser(result.user);
     }

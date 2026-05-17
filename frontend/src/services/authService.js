@@ -31,13 +31,13 @@ export const authService = {
 
   /**
    * Login user and store token
-   * @param {string} username - Username
+   * @param {string} email - Email address
    * @param {string} password - Password
    * @returns {Promise<Object>} - User data and token
    */
-  async login(username, password) {
+  async login(email, password) {
     try {
-      const response = await api.post('/auth/login', { username, password });
+      const response = await api.post('/auth/login', { email, password });
       const { access_token, user } = response.data;
       
       // Store token in localStorage
