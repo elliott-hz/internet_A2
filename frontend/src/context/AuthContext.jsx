@@ -57,6 +57,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const changePassword = async (oldPassword, newPassword) => {
+    const result = await authService.changePassword(oldPassword, newPassword);
+    return result;
+  };
+
   const value = {
     user,
     loading,
@@ -65,6 +70,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     register,
+    changePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

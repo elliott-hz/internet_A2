@@ -26,7 +26,7 @@ const BANNER_IMAGES = [
   },
 ];
 
-const Header = () => {
+const Header = ({ onNavigate }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
@@ -74,9 +74,14 @@ const Header = () => {
               Welcome, <strong>{user?.username}</strong>
               {isAdmin && <S.AdminBadge>ADMIN</S.AdminBadge>}
             </S.UserInfo>
-            <S.LogoutButton onClick={logout}>
-              Logout
-            </S.LogoutButton>
+            <S.UserActions>
+              <S.ChangePasswordButton onClick={() => onNavigate && onNavigate('change-password')}>
+                Change Password
+              </S.ChangePasswordButton>
+              <S.LogoutButton onClick={logout}>
+                Logout
+              </S.LogoutButton>
+            </S.UserActions>
           </S.UserBar>
         )}
       </S.BannerWrapper>

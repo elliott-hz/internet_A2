@@ -98,6 +98,28 @@ export const authService = {
         error: error.response?.data?.detail || 'Failed to get user info' 
       };
     }
+  },
+
+  /**
+   * Change user password
+   * @param {string} oldPassword - Current password
+   * @param {string} newPassword - New password
+   * @returns {Promise<Object>} - Result
+   */
+  async changePassword(oldPassword, newPassword) {
+    try {
+      const response = await api.post('/auth/change-password', { 
+        old_password: oldPassword, 
+        new_password: newPassword 
+      });
+      
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to change password' 
+      };
+    }
   }
 };
 

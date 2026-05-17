@@ -94,3 +94,17 @@ class TokenResponse(BaseModel):
                 }
             }
         }
+
+
+class PasswordChange(BaseModel):
+    """Schema for changing password"""
+    old_password: str = Field(..., description="Current password")
+    new_password: str = Field(..., min_length=8, description="New password (min 8 characters)")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "old_password": "oldpass123",
+                "new_password": "newsecurepass456"
+            }
+        }
