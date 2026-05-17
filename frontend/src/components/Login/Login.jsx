@@ -90,7 +90,7 @@ const Login = () => {
         <S.AdminHint>
           <S.AdminTooltip>
             Admin Credentials
-            <S.TooltipText>default username: admin, password: admin123</S.TooltipText>
+            <S.TooltipText>Default: admin@example.com / admin123</S.TooltipText>
           </S.AdminTooltip>
         </S.AdminHint>
       </S.LoginForm>
