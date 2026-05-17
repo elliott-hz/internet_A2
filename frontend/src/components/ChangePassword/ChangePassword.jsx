@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import * as S from './ChangePassword.styles';
 
@@ -10,6 +11,7 @@ const ChangePassword = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { changePassword, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,9 +41,10 @@ const ChangePassword = () => {
       setNewPassword('');
       setConfirmPassword('');
       
-      // Logout after 2 seconds
+      // Logout and redirect to home page after 2 seconds
       setTimeout(() => {
         logout();
+        navigate('/');
       }, 2000);
     } else {
       setError(result.error || 'Failed to change password');
@@ -101,8 +104,8 @@ const ChangePassword = () => {
           {loading ? 'Changing Password...' : 'Change Password'}
         </S.ChangePasswordButton>
         
-        <S.BackLink onClick={() => window.history.back()}>
-          ← Back to previous page
+        <S.BackLink onClick={() => navigate('/')}>
+          ← Back to home page
         </S.BackLink>
       </S.ChangePasswordForm>
     </S.ChangePasswordContainer>
