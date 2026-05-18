@@ -55,6 +55,25 @@ export const ProductsProvider = ({ children }) => {
     setSearchResults(null);
   };
 
+  // Update a single product in the list without triggering loading state
+  // Used by cart operations to sync stock quantities
+  const updateProductInList = (productId, updatedFields) => {
+    setProducts(prevProducts => 
+      prevProducts.map(p => 
+        p.id === productId ? { ...p, ...updatedFields } : p
+      )
+    );
+    
+    // Also update search results if they exist
+    if (searchResults) {
+      setSearchResults(prevResults =>
+        prevResults.map(p => 
+          p.id === productId ? { ...p, ...updatedFields } : p
+        )
+      );
+    }
+  };
+
   const updateProduct = async (productId, productData) => {
     try {
       const updatedProduct = await updateProductAPI(productId, productData);
@@ -98,6 +117,7 @@ export const ProductsProvider = ({ children }) => {
     clearSearch,
     refetch: fetchProducts,
     updateProduct,
+    updateProductInList,  // Expose new method
   };
 
   return <ProductsContext.Provider value={value}>{children}</ProductsContext.Provider>;

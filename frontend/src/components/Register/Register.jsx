@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import Toast from '../Modal/Toast';
 import * as S from './Register.styles';
 
 const Register = ({ onSwitchToLogin }) => {
@@ -11,6 +12,7 @@ const Register = ({ onSwitchToLogin }) => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -64,8 +66,13 @@ const Register = ({ onSwitchToLogin }) => {
 
     if (!result.success) {
       setError(result.error);
+    } else {
+      setSuccessMessage('Registration successful! Redirecting to login...');
+      // Switch to login page after showing success message
+      setTimeout(() => {
+        onSwitchToLogin();
+      }, 1500);
     }
-    // If successful, user will be auto-logged in and UI will update
   };
 
   return (
@@ -129,6 +136,15 @@ const Register = ({ onSwitchToLogin }) => {
         </S.InputGroup>
 
         {error && <S.ErrorMessage>{error}</S.ErrorMessage>}
+
+        {successMessage && (
+          <Toast 
+            message={successMessage} 
+            type="success" 
+            duration={2000}
+            onClose={() => setSuccessMessage('')}
+          />
+        )}
 
         <S.SubmitButton type="submit" disabled={loading}>
           {loading ? 'Creating Account...' : 'Register'}
