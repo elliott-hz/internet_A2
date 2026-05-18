@@ -97,9 +97,9 @@ class AuthService:
         return db_user
     
     @staticmethod
-    def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
-        """Authenticate a user with username and password"""
-        user = db.query(User).filter(User.username == username).first()
+    def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
+        """Authenticate a user with email and password"""
+        user = db.query(User).filter(User.email == email).first()
         
         if not user:
             return None
@@ -118,3 +118,37 @@ class AuthService:
     def get_user_by_username(db: Session, username: str) -> Optional[User]:
         """Get user by username"""
         return db.query(User).filter(User.username == username).first()
+    
+    @staticmethod
+    def change_password(db: Session, user: User, old_password: str, new_password: str) -> bool:
+        """
+        Change user password
+        
+        Args:
+            db: Database session
+            user: User object
+            old_password: Current password for verification
+            new_password: New password to set
+            
+        Returns:
+            True if password was changed successfully
+            
+        Raises:
+            ValidationError: If old password is incorrect or new password is invalid
+        """
+        # Verify old password
+        if not AuthService.verify_password(old_password, user.hashed_password):
+            raise ValidationError("Current password is incorrect")
+        
+        # Validate new password length
+        if len(new_password) < 8:
+            raise ValidationError("New password must be at least 8 characters long")
+        
+        # Hash and update new password
+        hashed_password = AuthService.hash_password(new_password)
+        user.hashed_password = hashed_password
+        
+        db.commit()
+        db.refresh(user)
+        
+        return True

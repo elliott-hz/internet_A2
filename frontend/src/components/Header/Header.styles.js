@@ -160,3 +160,52 @@ export const LogoutButton = styled.button`
     background: rgba(255, 255, 255, 0.45);
   }
 `;
+
+export const UserActions = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  pointer-events: auto;
+`;
+
+export const ChangePasswordButton = styled.button`
+  background: rgba(255, 152, 0, 0.3);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  
+  &:hover {
+    background: rgba(255, 152, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  &:active {
+    background: rgba(255, 152, 0, 0.6);
+  }
+`;
+
+export const ToggleViewButton = styled.button`
+  background: rgba(76, 175, 80, 0.3);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  
+  &:hover {
+    background: rgba(76, 175, 80, 0.5);
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  &:active {
+    background: rgba(76, 175, 80, 0.6);
+  }
+`;

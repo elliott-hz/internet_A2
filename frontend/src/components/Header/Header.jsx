@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import * as S from './Header.styles';
 
@@ -26,9 +27,10 @@ const BANNER_IMAGES = [
   },
 ];
 
-const Header = () => {
+const Header = ({ onNavigate, onToggleAdminView, showProductList }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -37,6 +39,17 @@ const Header = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const handleToggleView = () => {
+    if (onToggleAdminView) {
+      onToggleAdminView();
+    }
+  };
 
   return (
     <S.HeaderContainer>
@@ -67,16 +80,27 @@ const Header = () => {
           ))}
         </S.BannerIndicators>
 
-        {/* User Info and Logout Button - Overlay on banner */}
+        {/* User Info and Action Buttons - Overlay on banner */}
         {isAuthenticated && (
           <S.UserBar>
             <S.UserInfo>
               Welcome, <strong>{user?.username}</strong>
               {isAdmin && <S.AdminBadge>ADMIN</S.AdminBadge>}
             </S.UserInfo>
-            <S.LogoutButton onClick={logout}>
-              Logout
-            </S.LogoutButton>
+            <S.UserActions>
+              {/* Admin view toggle button */}
+              {isAdmin && (
+                <S.ToggleViewButton onClick={handleToggleView}>
+                  {showProductList ? 'Admin Dashboard' : 'Edit Products'}
+                </S.ToggleViewButton>
+              )}
+              <S.ChangePasswordButton onClick={() => onNavigate && onNavigate('change-password')}>
+                Change Password
+              </S.ChangePasswordButton>
+              <S.LogoutButton onClick={handleLogout}>
+                Logout
+              </S.LogoutButton>
+            </S.UserActions>
           </S.UserBar>
         )}
       </S.BannerWrapper>

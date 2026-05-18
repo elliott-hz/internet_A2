@@ -35,8 +35,14 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = async (username, password) => {
-    const result = await authService.login(username, password);
+  const login = async (email, password) => {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { success: false, error: 'Invalid email format' };
+    }
+    
+    const result = await authService.login(email, password);
     if (result.success) {
       setUser(result.user);
     }
@@ -57,6 +63,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const changePassword = async (oldPassword, newPassword) => {
+    const result = await authService.changePassword(oldPassword, newPassword);
+    return result;
+  };
+
   const value = {
     user,
     loading,
@@ -65,6 +76,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     register,
+    changePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

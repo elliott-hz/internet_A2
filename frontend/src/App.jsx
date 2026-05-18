@@ -1,11 +1,13 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from './components/Header/Header';
 import ProductList from './components/ProductList/ProductList';
 import ShoppingCart from './components/ShoppingCart/ShoppingCart';
 import Login from './components/Login/Login';
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import ProductEditPage from './components/ProductEditPage/ProductEditPage';
+import ChangePassword from './components/ChangePassword/ChangePassword';
 import styled from 'styled-components';
 
 const MainContainer = styled.div`
@@ -40,11 +42,21 @@ const ContentWrapper = styled.div`
 // Main content component with auth check
 function AppContent() {
   const { isAuthenticated, isAdmin, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
       <MainContainer>
         <div>Loading...</div>
+      </MainContainer>
+    );
+  }
+
+  // Show ChangePassword page if on that route
+  if (location.pathname === '/change-password') {
+    return (
+      <MainContainer>
+        <ChangePassword />
       </MainContainer>
     );
   }
@@ -68,14 +80,61 @@ function AppContent() {
   );
 }
 
+// Admin view with toggle between dashboard and product list
+function AdminView({ showProductList, onToggleView }) {
+  return (
+    <MainContainer>
+      {showProductList ? (
+        <ProductList />
+      ) : (
+        <AdminDashboard />
+      )}
+    </MainContainer>
+  );
+}
+
+// Router wrapper component to provide navigation context
+function AppWithRouter() {
+  const navigate = useNavigate();
+  const { isAuthenticated, isAdmin } = useAuth();
+  const [showProductList, setShowProductList] = useState(false);
+
+  const handleNavigation = (page) => {
+    if (page === 'change-password') {
+      navigate('/change-password');
+    }
+  };
+
+  const handleToggleAdminView = () => {
+    setShowProductList(!showProductList);
+  };
+
+  return (
+    <>
+      <Header 
+        onNavigate={handleNavigation} 
+        onToggleAdminView={isAdmin ? handleToggleAdminView : undefined}
+        showProductList={isAdmin ? showProductList : undefined}
+      />
+      <Routes>
+        <Route path="/" element={
+          isAdmin && isAuthenticated ? (
+            <AdminView showProductList={showProductList} onToggleView={handleToggleAdminView} />
+          ) : (
+            <AppContent />
+          )
+        } />
+        <Route path="/product/:id/edit" element={<ProductEditPage />} />
+        <Route path="/change-password" element={<AppContent />} />
+      </Routes>
+    </>
+  );
+}
+
 function App() {
   return (
     <Router>
-      <Header />
-      <Routes>
-        <Route path="/" element={<AppContent />} />
-        <Route path="/product/:id/edit" element={<ProductEditPage />} />
-      </Routes>
+      <AppWithRouter />
     </Router>
   );
 }
