@@ -16,7 +16,7 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const { products, refetch: refetchProducts } = useProducts(); // Get products and refetch function
+  const { products, refetch: refetchProducts, updateProductInList } = useProducts(); // Get products and update method
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -59,7 +59,7 @@ export const CartProvider = ({ children }) => {
     
     // Ensure minimum display time of 1.5 seconds
     const minDisplayPromise = new Promise(resolve => {
-      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
+      minLoadingTimeoutRef.current = setTimeout(resolve, 500);
     });
     
     try {
@@ -139,8 +139,11 @@ export const CartProvider = ({ children }) => {
         setCartItems(updatedItems);
       }
 
-      // Refresh products to sync stock quantities after successful add
-      await refetchProducts();
+      // Update product stock in ProductsContext using the stock_quantity from response
+      // Backend already calculated the new stock, no need to refetch entire product list
+      if (response && response.stock_quantity !== undefined) {
+        updateProductInList(productId, { stock_quantity: response.stock_quantity });
+      }
 
       setStockError(null);
     } catch (err) {
@@ -181,7 +184,7 @@ export const CartProvider = ({ children }) => {
     
     // Ensure minimum display time of 1.5 seconds
     const minDisplayPromise = new Promise(resolve => {
-      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
+      minLoadingTimeoutRef.current = setTimeout(resolve, 500);
     });
     
     // Save the original quantity for rollback if needed
@@ -196,10 +199,14 @@ export const CartProvider = ({ children }) => {
       setCartItems(updatedItems);
 
       // Then sync with backend
-      await cartService.updateCartItem(itemId, quantity);
+      const response = await cartService.updateCartItem(itemId, quantity);
       
-      // No need to refetch products for quantity update - stock doesn't change
-      // Only add/remove operations affect product stock
+      // Update product stock in ProductsContext using the stock_quantity from response
+      // This avoids page flicker from full refetch
+      if (response && response.stock_quantity !== undefined) {
+        const productId = response.product_id;
+        updateProductInList(productId, { stock_quantity: response.stock_quantity });
+      }
 
       setError(null);
       setStockError(null);
@@ -247,10 +254,14 @@ export const CartProvider = ({ children }) => {
     
     // Ensure minimum display time of 1.5 seconds
     const minDisplayPromise = new Promise(resolve => {
-      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
+      minLoadingTimeoutRef.current = setTimeout(resolve, 500);
     });
     
     try {
+      // Get the product_id before removing
+      const itemToRemove = cartItems.find((item) => item.id === itemId);
+      const productId = itemToRemove?.product_id || itemToRemove?.productId;
+      
       // Optimistically remove from UI first
       const updatedItems = cartItems.filter((item) => item.id !== itemId);
       setCartItems(updatedItems);
@@ -258,8 +269,15 @@ export const CartProvider = ({ children }) => {
       // Then sync with backend
       await cartService.removeCartItem(itemId);
       
-      // Refresh products to restore stock quantities after successful removal
-      await refetchProducts();
+      // Fetch the updated product to get restored stock quantity
+      // We need to call getProduct API to get the updated stock
+      const productService = await import('../services/productService');
+      const updatedProduct = await productService.getProduct(productId);
+      
+      // Update product stock in ProductsContext
+      if (updatedProduct && updatedProduct.stock_quantity !== undefined) {
+        updateProductInList(productId, { stock_quantity: updatedProduct.stock_quantity });
+      }
 
       setError(null);
       setStockError(null);
@@ -292,18 +310,38 @@ export const CartProvider = ({ children }) => {
     
     // Ensure minimum display time of 1.5 seconds
     const minDisplayPromise = new Promise(resolve => {
-      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
+      minLoadingTimeoutRef.current = setTimeout(resolve, 500);
     });
     
     try {
+      // Get all product_ids before clearing
+      const productIds = cartItems.map(item => item.product_id || item.productId);
+      
       // Optimistically clear the cart
       setCartItems([]);
       
       // Then sync with backend
       await cartService.clearCart();
       
-      // Refresh products to restore all stock quantities after clearing cart
-      await refetchProducts();
+      // Refetch all affected products to restore stock quantities
+      // This is more efficient than refetching all products
+      if (productIds.length > 0) {
+        const productService = await import('../services/productService');
+        
+        // Fetch each product individually and update
+        const updatePromises = productIds.map(async (productId) => {
+          try {
+            const updatedProduct = await productService.getProduct(productId);
+            if (updatedProduct && updatedProduct.stock_quantity !== undefined) {
+              updateProductInList(productId, { stock_quantity: updatedProduct.stock_quantity });
+            }
+          } catch (error) {
+            console.error(`Failed to fetch product ${productId}:`, error);
+          }
+        });
+        
+        await Promise.all(updatePromises);
+      }
 
       setError(null);
       setStockError(null);
