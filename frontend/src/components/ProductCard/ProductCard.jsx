@@ -19,14 +19,14 @@ const ProductCard = ({ product }) => {
   const [quantityError, setQuantityError] = useState(null);
   const [loginRequiredError, setLoginRequiredError] = useState(null);
 
-  // Calculate available stock using useMemo to ensure it updates when cartItems changes
-  const { cartQuantity, availableStock } = useMemo(() => {
-    const qtyInCart = getQuantityInCart(product.id);
-    return {
-      cartQuantity: qtyInCart,
-      availableStock: product.stock_quantity - qtyInCart
-    };
-  }, [product.id, product.stock_quantity, getQuantityInCart]);
+  // Get quantity in cart for display purposes only
+  const cartQuantity = useMemo(() => {
+    return getQuantityInCart(product.id);
+  }, [product.id, getQuantityInCart]);
+
+  // Available stock is directly from backend (backend already deducts cart quantities)
+  // No need to subtract cartQuantity again - that would cause double subtraction
+  const availableStock = product.stock_quantity;
 
   const handleEditProduct = () => {
     navigate(`/product/${product.id}/edit`);

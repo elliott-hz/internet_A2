@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import * as cartService from '../services/cartService';
 import { useAuth } from './AuthContext';
 import { useProducts } from './ProductsContext';
@@ -16,11 +16,13 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const { products } = useProducts(); // Get products from ProductsContext
+  const { products, refetch: refetchProducts } = useProducts(); // Get products and refetch function
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [stockError, setStockError] = useState(null); // Stock-specific error state
+  const [operationLoading, setOperationLoading] = useState(false); // Global operation loading state
+  const minLoadingTimeoutRef = useRef(null); // Ref to track minimum loading timeout
 
   // Fetch cart items from backend
   const fetchCart = async () => {
@@ -53,6 +55,13 @@ export const CartProvider = ({ children }) => {
 
   // Add item to cart
   const addToCart = async (productOrId, quantity = 1) => {
+    setOperationLoading(true);
+    
+    // Ensure minimum display time of 1.5 seconds
+    const minDisplayPromise = new Promise(resolve => {
+      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
+    });
+    
     try {
       // Support both product object and product ID
       let productId;
@@ -130,6 +139,9 @@ export const CartProvider = ({ children }) => {
         setCartItems(updatedItems);
       }
 
+      // Refresh products to sync stock quantities after successful add
+      await refetchProducts();
+
       setStockError(null);
     } catch (err) {
       console.error('Failed to add to cart:', err);
@@ -152,11 +164,26 @@ export const CartProvider = ({ children }) => {
         setStockError(null);
       }
       throw err;
+    } finally {
+      // Wait for minimum display time before hiding overlay
+      await minDisplayPromise;
+      setOperationLoading(false);
+      if (minLoadingTimeoutRef.current) {
+        clearTimeout(minLoadingTimeoutRef.current);
+        minLoadingTimeoutRef.current = null;
+      }
     }
   };
 
   // Update item quantity
   const updateQuantity = async (itemId, quantity) => {
+    setOperationLoading(true);
+    
+    // Ensure minimum display time of 1.5 seconds
+    const minDisplayPromise = new Promise(resolve => {
+      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
+    });
+    
     // Save the original quantity for rollback if needed
     const originalQuantity =
       cartItems.find((item) => item.id === itemId)?.quantity || 0;
@@ -171,7 +198,8 @@ export const CartProvider = ({ children }) => {
       // Then sync with backend
       await cartService.updateCartItem(itemId, quantity);
       
-      // No fetchCart needed - optimistic update is sufficient
+      // No need to refetch products for quantity update - stock doesn't change
+      // Only add/remove operations affect product stock
 
       setError(null);
       setStockError(null);
@@ -202,11 +230,26 @@ export const CartProvider = ({ children }) => {
         await fetchCart();
       }
       throw err;
+    } finally {
+      // Wait for minimum display time before hiding overlay
+      await minDisplayPromise;
+      setOperationLoading(false);
+      if (minLoadingTimeoutRef.current) {
+        clearTimeout(minLoadingTimeoutRef.current);
+        minLoadingTimeoutRef.current = null;
+      }
     }
   };
 
   // Remove item from cart
   const removeFromCart = async (itemId) => {
+    setOperationLoading(true);
+    
+    // Ensure minimum display time of 1.5 seconds
+    const minDisplayPromise = new Promise(resolve => {
+      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
+    });
+    
     try {
       // Optimistically remove from UI first
       const updatedItems = cartItems.filter((item) => item.id !== itemId);
@@ -215,7 +258,8 @@ export const CartProvider = ({ children }) => {
       // Then sync with backend
       await cartService.removeCartItem(itemId);
       
-      // No fetchCart needed - optimistic update is sufficient
+      // Refresh products to restore stock quantities after successful removal
+      await refetchProducts();
 
       setError(null);
       setStockError(null);
@@ -226,6 +270,14 @@ export const CartProvider = ({ children }) => {
       // On error, refetch to ensure consistency
       await fetchCart();
       throw err;
+    } finally {
+      // Wait for minimum display time before hiding overlay
+      await minDisplayPromise;
+      setOperationLoading(false);
+      if (minLoadingTimeoutRef.current) {
+        clearTimeout(minLoadingTimeoutRef.current);
+        minLoadingTimeoutRef.current = null;
+      }
     }
   };
 
@@ -236,6 +288,13 @@ export const CartProvider = ({ children }) => {
 
   // Clear entire cart
   const clearCart = async () => {
+    setOperationLoading(true);
+    
+    // Ensure minimum display time of 1.5 seconds
+    const minDisplayPromise = new Promise(resolve => {
+      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
+    });
+    
     try {
       // Optimistically clear the cart
       setCartItems([]);
@@ -243,7 +302,8 @@ export const CartProvider = ({ children }) => {
       // Then sync with backend
       await cartService.clearCart();
       
-      // No fetchCart needed - optimistic update is sufficient
+      // Refresh products to restore all stock quantities after clearing cart
+      await refetchProducts();
 
       setError(null);
       setStockError(null);
@@ -254,6 +314,14 @@ export const CartProvider = ({ children }) => {
       // On error, refetch to ensure consistency
       await fetchCart();
       throw err;
+    } finally {
+      // Wait for minimum display time before hiding overlay
+      await minDisplayPromise;
+      setOperationLoading(false);
+      if (minLoadingTimeoutRef.current) {
+        clearTimeout(minLoadingTimeoutRef.current);
+        minLoadingTimeoutRef.current = null;
+      }
     }
   };
 
@@ -274,6 +342,7 @@ export const CartProvider = ({ children }) => {
     loading,
     error,
     stockError,
+    operationLoading,
     addToCart,
     updateQuantity,
     removeFromCart,

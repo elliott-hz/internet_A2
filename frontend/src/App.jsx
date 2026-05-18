@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
+import { useCart } from './context/CartContext';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from './components/Header/Header';
 import ProductList from './components/ProductList/ProductList';
@@ -8,6 +9,7 @@ import Login from './components/Login/Login';
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import ProductEditPage from './components/ProductEditPage/ProductEditPage';
 import ChangePassword from './components/ChangePassword/ChangePassword';
+import LoadingOverlay from './components/Modal/LoadingOverlay';
 import styled from 'styled-components';
 
 const MainContainer = styled.div`
@@ -42,6 +44,7 @@ const ContentWrapper = styled.div`
 // Main content component with auth check
 function AppContent() {
   const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { operationLoading } = useCart(); // Get operation loading state
   const location = useLocation();
 
   if (loading) {
@@ -55,41 +58,52 @@ function AppContent() {
   // Show ChangePassword page if on that route
   if (location.pathname === '/change-password') {
     return (
-      <MainContainer>
-        <ChangePassword />
-      </MainContainer>
+      <>
+        <LoadingOverlay isVisible={operationLoading} message="Processing..." />
+        <MainContainer>
+          <ChangePassword />
+        </MainContainer>
+      </>
     );
   }
 
   return (
-    <MainContainer>
-      <ContentWrapper>
-        <ProductList />
-        {/* Show different components based on auth status and role */}
-        {isAuthenticated ? (
-          isAdmin ? (
-            <AdminDashboard />  // Admin sees dashboard instead of personal cart
+    <>
+      <LoadingOverlay isVisible={operationLoading} message="Processing..." />
+      <MainContainer>
+        <ContentWrapper>
+          <ProductList />
+          {/* Show different components based on auth status and role */}
+          {isAuthenticated ? (
+            isAdmin ? (
+              <AdminDashboard />  // Admin sees dashboard instead of personal cart
+            ) : (
+              <ShoppingCart />    // Regular users see their cart
+            )
           ) : (
-            <ShoppingCart />    // Regular users see their cart
-          )
-        ) : (
-          <Login />
-        )}
-      </ContentWrapper>
-    </MainContainer>
+            <Login />
+          )}
+        </ContentWrapper>
+      </MainContainer>
+    </>
   );
 }
 
 // Admin view with toggle between dashboard and product list
 function AdminView({ showProductList, onToggleView }) {
+  const { operationLoading } = useCart(); // Get operation loading state
+  
   return (
-    <MainContainer>
-      {showProductList ? (
-        <ProductList />
-      ) : (
-        <AdminDashboard />
-      )}
-    </MainContainer>
+    <>
+      <LoadingOverlay isVisible={operationLoading} message="Processing..." />
+      <MainContainer>
+        {showProductList ? (
+          <ProductList />
+        ) : (
+          <AdminDashboard />
+        )}
+      </MainContainer>
+    </>
   );
 }
 
