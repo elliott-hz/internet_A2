@@ -88,7 +88,8 @@ async def add_to_cart(
             existing_item.id, 
             CartItemUpdate(quantity=new_quantity),
             product.stock_quantity,
-            product.is_available
+            product.is_available,
+            product  # Pass product object
         )
         # Manually populate response with product data
         return _populate_cart_item_response(updated_item)
@@ -99,7 +100,8 @@ async def add_to_cart(
             cart_item_data,
             current_user.id,  # Pass user_id
             product.stock_quantity,
-            product.is_available
+            product.is_available,
+            product  # Pass product object
         )
         # Manually populate response with product data
         return _populate_cart_item_response(new_item)
@@ -137,7 +139,8 @@ async def update_cart_item(
         item_id, 
         cart_item_data,
         product.stock_quantity,
-        product.is_available
+        product.is_available,
+        product  # Pass product object
     )
     # Manually populate response with product data
     return _populate_cart_item_response(updated_item)
