@@ -17,13 +17,14 @@ INSERT OR IGNORE INTO products (name, description, price, image_url, stock_quant
 ('Portable Power Bank', '20000mAh high-capacity portable charger with fast charging and dual USB ports', 39.99, 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=500', 100, 1),
 ('Mechanical Keyboard', 'RGB backlit mechanical gaming keyboard with blue switches and aluminum frame', 89.99, 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500', 45, 1),
 ('Wireless Mouse', 'Ergonomic wireless mouse with adjustable DPI, silent clicks, and long battery life', 29.99, 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500', 75, 1),
-('USB-C Hub Adapter', '7-in-1 USB-C hub with HDMI, USB 3.0, SD card reader, and power delivery', 49.99, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?w=500', 60, 1),
-('Laptop Stand', 'Adjustable aluminum laptop stand with ergonomic design and heat dissipation', 44.99, 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500', 40, 1),
-('Webcam HD 1080p', 'Full HD webcam with autofocus, built-in microphone, and wide-angle lens', 59.99, 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=500', 35, 1),
-('External SSD 1TB', 'Portable solid-state drive with ultra-fast transfer speeds and durable design', 129.99, 'https://picsum.photos/seed/ssd-drive/500/500.jpg', 25, 1),
-('Phone Stand Holder', 'Adjustable cell phone stand compatible with all smartphones, perfect for desk', 14.99, 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=500', 120, 1),
-('LED Desk Lamp', 'Dimmable LED desk lamp with touch control, USB charging port, and eye-care technology', 34.99, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500', 55, 1),
-('Bluetooth Speaker', 'Portable waterproof Bluetooth speaker with 360° sound and 12-hour playtime', 54.99, 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500', 65, 1);
+('USB-C Hub Adapter', '7-in-1 USB-C hub with HDMI, USB 3.0, SD card reader, and power delivery', 49.99, 'https://plus.unsplash.com/premium_photo-1764113096564-2cf2522f1040?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=500', 60, 1),
+('Laptop Stand', 'Adjustable aluminum laptop stand with ergonomic design and heat dissipation', 44.99, 'https://images.unsplash.com/photo-1623251606108-512c7c4a3507?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=500', 40, 1),
+('Webcam HD 1080p', 'Full HD webcam with autofocus, built-in microphone, and wide-angle lens', 59.99, 'https://images.unsplash.com/photo-1636569826709-8e07f6104992?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=500', 35, 1),
+('External SSD 1TB', 'Portable solid-state drive with ultra-fast transfer speeds and durable design', 129.99, 'https://images.unsplash.com/photo-1699376272555-22c747639901?q=80&w=1631&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=500', 25, 1),
+('Phone Stand Holder', 'Adjustable cell phone stand compatible with all smartphones, perfect for desk', 14.99, 'https://images.unsplash.com/photo-1697890666058-186fac9160ad?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=500', 120, 1),
+('LED Desk Lamp', 'Dimmable LED desk lamp with touch control, USB charging port, and eye-care technology', 34.99, 'https://images.unsplash.com/photo-1623678624314-c3efb63fb2d2?q=80&w=1633&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=500', 55, 1),
+('Bluetooth Speaker', 'Portable waterproof Bluetooth speaker with 360° sound and 12-hour playtime', 54.99, 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500', 65, 1),
+('Apple EarPods (Lightning)', 'Designed by Apple with deep rich bass tones, protection from sweat and water, built-in remote to control music, video and calls', 29.00, 'https://images.unsplash.com/photo-1563014959-7aaa83350992?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=500', 50, 1);
 
 -- Verify insertion
 SELECT COUNT(*) as total_users FROM users;
