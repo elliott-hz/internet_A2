@@ -11,9 +11,11 @@ const CartItem = ({ item }) => {
   const [showConfirm, setShowConfirm] = useState(false);
 
   // Get stock quantity from item (from backend response)
+  // stock_quantity represents available stock (already deducted cart quantities)
   const stockQuantity = item.stock_quantity || 0;
-  // Only disable plus button if we have stock info and reached the limit
-  const isMaxStock = stockQuantity > 0 && item.quantity >= stockQuantity;
+  
+  // Disable plus button only when no stock available
+  const isMaxStock = stockQuantity <= 0;
 
   // Calculate item total (quantity * price)
   const itemTotal = (item.price || 0) * item.quantity;

@@ -114,7 +114,7 @@ class ProductService:
             db: Database session
             product_id: Product ID to update
             product_data: Product update data
-            is_admin: Whether the user is an admin (for stock validation)
+            is_admin: Whether the user is an admin
             
         Returns:
             Updated Product object
@@ -132,18 +132,19 @@ class ProductService:
         update_data = product_data.model_dump(exclude_unset=True)
         
         # Validate stock quantity if being updated
+        # Note: stock_quantity represents AVAILABLE stock (not total stock)
+        # Admin can set any value from 0 to MAX_STOCK_QUANTITY
         if 'stock_quantity' in update_data:
             new_stock = update_data['stock_quantity']
             
-            # Get total quantity in all carts
-            cart_quantity = ProductService.get_product_cart_quantity(db, product_id)
+            # Validate minimum value
+            if new_stock < 0:
+                raise ValidationError("Stock quantity cannot be negative")
             
-            # Validate: stock cannot be less than quantity in carts
-            if new_stock < cart_quantity:
-                raise ValidationError(
-                    f"Cannot reduce stock below {cart_quantity}. "
-                    f"{cart_quantity} item(s) are currently in users' carts."
-                )
+            # Validate maximum value (prevent unreasonable large values)
+            MAX_STOCK_QUANTITY = 1000
+            if new_stock > MAX_STOCK_QUANTITY:
+                raise ValidationError(f"Stock quantity cannot exceed {MAX_STOCK_QUANTITY}")
         
         # Update product fields
         for field, value in update_data.items():

@@ -1,14 +1,13 @@
 """
-Database Initialization Script for SQLite (Assignment A2)
+Database Initialization Script for SQLite (Internet A2)
 Uses SQL files to initialize database and seed data.
 
 Files used:
 - init.sql: Creates database schema (tables, indexes)
 - seed_data.sql: Inserts sample data (users, products)
-- migration_a2.sql: Migration script (if upgrading from A1)
 
 Usage:
-    python init_db.py              # Initialize database using SQL files
+    python init_db.py              # Initialize database
     python init_db.py --force      # Force re-initialization (drops existing database)
 """
 
@@ -21,51 +20,6 @@ import sqlite3
 def get_db_path():
     """Get the database file path"""
     return os.path.join(os.path.dirname(__file__), 'internet_a2.db')
-
-
-def check_database_exists():
-    """Check if database file exists"""
-    db_path = get_db_path()
-    return os.path.exists(db_path)
-
-
-def check_schema_version():
-    """
-    Check if database is A1 or A2 schema
-    Returns: 'a1' (needs migration), 'a2' (up to date), or 'empty' (new database)
-    """
-    db_path = get_db_path()
-    
-    if not os.path.exists(db_path):
-        return 'empty'
-    
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        # Check if users table exists
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
-        has_users = cursor.fetchone() is not None
-        
-        # Check if cart_items has user_id column
-        has_user_id = False
-        if has_users:
-            cursor.execute("PRAGMA table_info(cart_items)")
-            columns = [row[1] for row in cursor.fetchall()]
-            has_user_id = 'user_id' in columns
-        
-        conn.close()
-        
-        if has_users and has_user_id:
-            return 'a2'
-        elif has_users or not has_user_id:
-            return 'a1'
-        else:
-            return 'empty'
-            
-    except Exception as e:
-        print(f"Warning: Could not check schema version: {e}")
-        return 'empty'
 
 
 def execute_sql_file(sql_file_path):
@@ -126,27 +80,6 @@ def execute_sql_file(sql_file_path):
         raise
     finally:
         conn.close()
-
-
-def run_migration():
-    """Run A2 migration if needed"""
-    print("\n🔄 Checking if migration is needed...")
-    
-    schema_version = check_schema_version()
-    
-    if schema_version == 'a1':
-        print("  Detected A1 schema, running migration...")
-        migration_file = os.path.join(os.path.dirname(__file__), 'migration_a2.sql')
-        
-        if os.path.exists(migration_file):
-            execute_sql_file(migration_file)
-            print("  ✅ Migration completed")
-        else:
-            print("  ⚠️  Migration file not found, skipping")
-    elif schema_version == 'a2':
-        print("  ✅ Database is already A2 schema, skipping migration")
-    else:
-        print("  ℹ️  New database, no migration needed")
 
 
 def create_tables():
@@ -261,14 +194,6 @@ def init_database(force=False):
                 os.remove(db_path)
                 print("  ✅ Database removed")
         
-        # Check current state
-        schema_version = check_schema_version()
-        print(f"\n📊 Current schema version: {schema_version.upper()}")
-        
-        # Run migration if needed
-        if schema_version != 'empty':
-            run_migration()
-        
         # Create tables (idempotent - uses CREATE TABLE IF NOT EXISTS)
         create_tables()
         
@@ -310,13 +235,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python init_db.py              # Normal initialization (auto-detects schema)
+  python init_db.py              # Normal initialization
   python init_db.py --force      # Force re-initialization (drops all tables)
 
 SQL Files Used:
   - init.sql: Database schema
   - seed_data.sql: Sample data
-  - migration_a2.sql: A1 to A2 migration (if needed)
         """
     )
     

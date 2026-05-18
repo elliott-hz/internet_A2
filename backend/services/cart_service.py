@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 
 from models.cart_item import CartItem
+from models.product import Product  # Add Product import
 from schemas.cart_item import CartItemCreate, CartItemUpdate
 from utils.exceptions import NotFoundError, ValidationError, StockError
 
@@ -119,7 +120,8 @@ class CartService:
         cart_item_data: CartItemCreate,
         user_id: int,
         product_stock_quantity: int,
-        product_available: bool
+        product_available: bool,
+        product: Product  # Add product object to update stock
     ) -> CartItem:
         """
         Create a new cart item
@@ -130,6 +132,7 @@ class CartService:
             user_id: User ID who owns this cart item
             product_stock_quantity: Product's stock quantity for validation
             product_available: Product's availability status
+            product: Product object to update stock
             
         Returns:
             Created CartItem object
@@ -153,6 +156,10 @@ class CartService:
         if cart_item_data.quantity > product_stock_quantity:
             raise StockError(f"Only {product_stock_quantity} items available in stock")
         
+        # Deduct stock when adding to cart
+        product.stock_quantity -= cart_item_data.quantity
+        db.add(product)
+        
         # Create cart item with user_id
         cart_item_dict = cart_item_data.model_dump()
         cart_item_dict['user_id'] = user_id
@@ -169,7 +176,8 @@ class CartService:
         item_id: int, 
         cart_item_data: CartItemUpdate,
         product_stock_quantity: int,
-        product_available: bool
+        product_available: bool,
+        product: Product  # Add product object to update stock
     ) -> CartItem:
         """
         Update an existing cart item
@@ -180,6 +188,7 @@ class CartService:
             cart_item_data: Cart item update data
             product_stock_quantity: Product's stock quantity for validation
             product_available: Product's availability status
+            product: Product object to update stock
             
         Returns:
             Updated CartItem object
@@ -209,9 +218,14 @@ class CartService:
             if not product_available:
                 raise StockError("Product is no longer available")
             
-            # Check stock
-            if update_data['quantity'] > product_stock_quantity:
+            # Check stock (need to account for the difference)
+            quantity_diff = update_data['quantity'] - cart_item.quantity
+            if quantity_diff > 0 and quantity_diff > product_stock_quantity:
                 raise StockError(f"Only {product_stock_quantity} items available in stock")
+            
+            # Update stock based on quantity change
+            product.stock_quantity -= quantity_diff
+            db.add(product)
         
         for field, value in update_data.items():
             setattr(cart_item, field, value)
@@ -240,6 +254,12 @@ class CartService:
         if not cart_item:
             raise NotFoundError("Cart Item")
         
+        # Restore stock when removing from cart
+        product = cart_item.product
+        if product:
+            product.stock_quantity += cart_item.quantity
+            db.add(product)
+        
         db.delete(cart_item)
         db.commit()
         return True
@@ -253,6 +273,16 @@ class CartService:
             db: Database session
             user_id: User ID
         """
+        # Get all items to restore stock
+        items = db.query(CartItem).filter(CartItem.user_id == user_id).all()
+        
+        # Restore stock for each item
+        for item in items:
+            if item.product:
+                item.product.stock_quantity += item.quantity
+                db.add(item.product)
+        
+        # Delete all items
         db.query(CartItem).filter(CartItem.user_id == user_id).delete()
         db.commit()
     
