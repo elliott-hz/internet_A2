@@ -67,13 +67,12 @@ const Register = ({ onSwitchToLogin }) => {
     if (!result.success) {
       setError(result.error);
     } else {
-      setSuccessMessage('Registration successful! Redirecting...');
-      // Clear success message after 2 seconds
+      setSuccessMessage('Registration successful! Redirecting to login...');
+      // Switch to login page after showing success message
       setTimeout(() => {
-        setSuccessMessage('');
-      }, 2000);
+        onSwitchToLogin();
+      }, 1500);
     }
-    // If successful, user will be auto-logged in and UI will update
   };
 
   return (
