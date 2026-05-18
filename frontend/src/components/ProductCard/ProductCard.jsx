@@ -143,9 +143,11 @@ const ProductCard = ({ product }) => {
         src={product.image_url || '/placeholder-product.jpg'}
         alt={product.name}
       />
+      {/* s.here */}
+
       <S.ProductInfo>
         <S.ProductName>{truncateText(product.name, 30)}</S.ProductName>
-        <S.ProductDescription>{truncateText(product.description, 80)}</S.ProductDescription>
+        <S.ProductDescription>{product.description}</S.ProductDescription>
         <S.ProductPrice>{formatCurrency(product.price)}</S.ProductPrice>
 
         {/* Stock Information */}

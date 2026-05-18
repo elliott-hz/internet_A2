@@ -51,10 +51,10 @@ export const ProductDescription = styled.p`
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 44px;
+  height: 60px;
 `;
 
 export const ProductPrice = styled.div`
