@@ -254,7 +254,7 @@ export const CartProvider = ({ children }) => {
     
     // Ensure minimum display time of 1.5 seconds
     const minDisplayPromise = new Promise(resolve => {
-      minLoadingTimeoutRef.current = setTimeout(resolve, 500);
+      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
     });
     
     try {
@@ -270,13 +270,14 @@ export const CartProvider = ({ children }) => {
       await cartService.removeCartItem(itemId);
       
       // Fetch the updated product to get restored stock quantity
-      // We need to call getProduct API to get the updated stock
-      const productService = await import('../services/productService');
-      const updatedProduct = await productService.getProduct(productId);
-      
-      // Update product stock in ProductsContext
-      if (updatedProduct && updatedProduct.stock_quantity !== undefined) {
-        updateProductInList(productId, { stock_quantity: updatedProduct.stock_quantity });
+      if (productId) {
+        const { getProductById } = await import('../services/productService');
+        const updatedProduct = await getProductById(productId);
+        
+        // Update product stock in ProductsContext
+        if (updatedProduct && updatedProduct.stock_quantity !== undefined) {
+          updateProductInList(productId, { stock_quantity: updatedProduct.stock_quantity });
+        }
       }
 
       setError(null);
@@ -310,7 +311,7 @@ export const CartProvider = ({ children }) => {
     
     // Ensure minimum display time of 1.5 seconds
     const minDisplayPromise = new Promise(resolve => {
-      minLoadingTimeoutRef.current = setTimeout(resolve, 500);
+      minLoadingTimeoutRef.current = setTimeout(resolve, 1500);
     });
     
     try {
@@ -326,12 +327,12 @@ export const CartProvider = ({ children }) => {
       // Refetch all affected products to restore stock quantities
       // This is more efficient than refetching all products
       if (productIds.length > 0) {
-        const productService = await import('../services/productService');
+        const { getProductById } = await import('../services/productService');
         
         // Fetch each product individually and update
         const updatePromises = productIds.map(async (productId) => {
           try {
-            const updatedProduct = await productService.getProduct(productId);
+            const updatedProduct = await getProductById(productId);
             if (updatedProduct && updatedProduct.stock_quantity !== undefined) {
               updateProductInList(productId, { stock_quantity: updatedProduct.stock_quantity });
             }
